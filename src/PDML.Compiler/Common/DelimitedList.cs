@@ -35,8 +35,13 @@ public sealed class DelimitedList<T> : IEnumerable<T>
         _expectsItem = true;
     }
 
-    public IEnumerator<T> GetEnumerator() =>
-        _entries.GetEnumerator();
+    public IEnumerator<T> GetEnumerator()
+    {
+        for (int i = 0; i < _entries.Count; i += 2)
+        {
+            yield return _entries[i];
+        }
+    }
 
     IEnumerator IEnumerable.GetEnumerator() =>
         GetEnumerator();
@@ -45,8 +50,7 @@ public sealed class DelimitedList<T> : IEnumerable<T>
 /// <summary>
 /// Delimited list where items and delimiters have different types.
 /// </summary>
-public sealed class DelimitedList<TItem, TDelimiter>
-    : IEnumerable<object>
+public sealed class DelimitedList<TItem, TDelimiter> : IEnumerable<TItem>
 {
     private readonly List<object> _entries = new List<object>();
     private bool _expectsItem = true;
@@ -76,8 +80,13 @@ public sealed class DelimitedList<TItem, TDelimiter>
         _expectsItem = true;
     }
 
-    public IEnumerator<object> GetEnumerator() =>
-        _entries.GetEnumerator();
+    public IEnumerator<TItem> GetEnumerator()
+    {
+        for (int i = 0; i < _entries.Count; i += 2)
+        {
+            yield return (TItem)_entries[i];
+        }
+    }
 
     IEnumerator IEnumerable.GetEnumerator() =>
         GetEnumerator();

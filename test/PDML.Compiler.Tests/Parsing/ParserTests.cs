@@ -115,14 +115,10 @@ public sealed class ParserTests
         Assert.NotNull(parentType.Generics);
         Assert.Equal(2, parentType.Generics.Count);
 
-        List<TypeSignature> typeArgs = parentType.Generics.OfType<TypeSignature>().ToList();
+        List<TypeSignature> typeArgs = parentType.Generics.ToList();
         Assert.Equal(2, typeArgs.Count);
         Assert.Equal("T", typeArgs[0].Name.Value);
         Assert.Equal("U", typeArgs[1].Name.Value);
-
-        List<Token> delimiters = parentType.Generics.OfType<Token>().ToList();
-        Assert.Single(delimiters);
-        Assert.Equal(TokenType.Comma, delimiters[0].Type);
     }
 
     [Fact]
@@ -187,22 +183,16 @@ public sealed class ParserTests
         Assert.Equal(3, member.Items.Count);
         Assert.Equal(5, member.Items.TotalCount);
 
-        List<object> entries = member.Items.ToList();
-        TypeDefinitionItemTarget target0 = Assert.IsType<TypeDefinitionItemTarget>(entries[0]);
+        List<TypeDefinitionItem> items = member.Items.ToList();
+        TypeDefinitionItemTarget target0 = Assert.IsType<TypeDefinitionItemTarget>(items[0]);
         Assert.Equal("BaseType", target0.Type.Name.Value);
 
-        Token amp0 = Assert.IsType<Token>(entries[1]);
-        Assert.Equal(TokenType.Ampersand, amp0.Type);
-
-        TypeDefinitionItemBody body = Assert.IsType<TypeDefinitionItemBody>(entries[2]);
+        TypeDefinitionItemBody body = Assert.IsType<TypeDefinitionItemBody>(items[1]);
         Assert.Single(body.Properties);
         Assert.Equal("id", body.Properties[0].Name.Value);
         Assert.Equal("int64", body.Properties[0].TypeClause.TypeSignature.Name.Value);
 
-        Token amp1 = Assert.IsType<Token>(entries[3]);
-        Assert.Equal(TokenType.Ampersand, amp1.Type);
-
-        TypeDefinitionItemTarget target1 = Assert.IsType<TypeDefinitionItemTarget>(entries[4]);
+        TypeDefinitionItemTarget target1 = Assert.IsType<TypeDefinitionItemTarget>(items[2]);
         Assert.Equal("Timestamped", target1.Type.Name.Value);
     }
 
@@ -222,7 +212,7 @@ public sealed class ParserTests
         Assert.NotNull(mapType.Generics);
         Assert.Equal(2, mapType.Generics.Count);
 
-        List<TypeSignature> mapArgs = mapType.Generics.OfType<TypeSignature>().ToList();
+        List<TypeSignature> mapArgs = mapType.Generics.ToList();
         Assert.Equal("String", mapArgs[0].Name.Value);
         Assert.Null(mapArgs[0].Generics);
 
@@ -231,12 +221,12 @@ public sealed class ParserTests
         Assert.NotNull(listType.Generics);
         Assert.Equal(1, listType.Generics.Count);
 
-        TypeSignature resultType = Assert.Single(listType.Generics.OfType<TypeSignature>());
+        TypeSignature resultType = Assert.Single(listType.Generics);
         Assert.Equal("Result", resultType.Name.Value);
         Assert.NotNull(resultType.Generics);
         Assert.Equal(2, resultType.Generics.Count);
 
-        List<TypeSignature> resultArgs = resultType.Generics.OfType<TypeSignature>().ToList();
+        List<TypeSignature> resultArgs = resultType.Generics.ToList();
         Assert.Equal("int32", resultArgs[0].Name.Value);
         Assert.Equal("Error", resultArgs[1].Name.Value);
     }

@@ -29,6 +29,23 @@ public sealed class DiagnosticBag : IEnumerable<Diagnostic>
         _diagnostics.Add(new Diagnostic
         {
             Location = location,
+            AdditionalLocations = [],
+            Message = string.Format(descriptor.MessageFormat, args),
+            Descriptor = descriptor
+        });
+    }
+
+    public void Report(DiagnosticDescriptor descriptor, Location location, Location[] additionalLocations, params object[] args)
+    {
+        if (args.Length != descriptor.ArgumentCount)
+        {
+            throw new ArgumentException($"Expected {descriptor.ArgumentCount} arguments, but got {args.Length}.", nameof(args));
+        }
+
+        _diagnostics.Add(new Diagnostic
+        {
+            Location = location,
+            AdditionalLocations = additionalLocations,
             Message = string.Format(descriptor.MessageFormat, args),
             Descriptor = descriptor
         });

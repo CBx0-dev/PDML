@@ -3,4 +3,8 @@
     <PropertyGroup>
     </PropertyGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\PDML.Compiler\PDML.Compiler.csproj" />
+    </ItemGroup>
+
 </Project>

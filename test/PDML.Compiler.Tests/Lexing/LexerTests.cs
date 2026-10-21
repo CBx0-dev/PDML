@@ -8,21 +8,21 @@ public sealed class LexerTests
 {
     private static (Lexer Lexer, DiagnosticBag Diagnostics) CreateLexer(string content)
     {
-        var diagnostics = new DiagnosticBag();
-        var sourceFile = SourceFile.Create(".", "test.pdml", content);
-        var lexer = new Lexer(diagnostics, sourceFile);
+        DiagnosticBag diagnostics = new DiagnosticBag();
+        SourceFile sourceFile = SourceFile.Create(".", "test.pdml", content);
+        Lexer lexer = new Lexer(diagnostics, sourceFile);
         return (lexer, diagnostics);
     }
 
     private static List<Token> LexAll(string content, out DiagnosticBag diagnostics)
     {
-        var (lexer, diag) = CreateLexer(content);
+        (Lexer lexer, DiagnosticBag diag) = CreateLexer(content);
         diagnostics = diag;
 
-        var tokens = new List<Token>();
+        List<Token> tokens = new List<Token>();
         while (true)
         {
-            var token = lexer.NextToken();
+            Token token = lexer.NextToken();
             tokens.Add(token);
             if (token.Type == TokenType.Eof)
             {
@@ -36,9 +36,9 @@ public sealed class LexerTests
     [Fact]
     public void NextToken_WithEmptySource_ReturnsEofToken()
     {
-        var (lexer, diagnostics) = CreateLexer("");
+        (Lexer lexer, DiagnosticBag diagnostics) = CreateLexer("");
 
-        var token = lexer.NextToken();
+        Token token = lexer.NextToken();
 
         Assert.Equal(TokenType.Eof, token.Type);
         Assert.Equal("", token.Value);
@@ -54,11 +54,11 @@ public sealed class LexerTests
     [Fact]
     public void NextToken_WhenCalledRepeatedlyAtEof_ConsistentlyReturnsEof()
     {
-        var (lexer, _) = CreateLexer("");
+        (Lexer lexer, _) = CreateLexer("");
 
-        var first = lexer.NextToken();
-        var second = lexer.NextToken();
-        var third = lexer.NextToken();
+        Token first = lexer.NextToken();
+        Token second = lexer.NextToken();
+        Token third = lexer.NextToken();
 
         Assert.Equal(TokenType.Eof, first.Type);
         Assert.Equal(TokenType.Eof, second.Type);
@@ -69,16 +69,18 @@ public sealed class LexerTests
     [InlineData("&", TokenType.Ampersand)]
     [InlineData(":", TokenType.Colon)]
     [InlineData(";", TokenType.Semicolon)]
+    [InlineData(",", TokenType.Comma)]
+    [InlineData("=", TokenType.Equals)]
     [InlineData("{", TokenType.LBrace)]
     [InlineData("}", TokenType.RBrace)]
     [InlineData("<", TokenType.LAngle)]
     [InlineData(">", TokenType.RAngle)]
     public void NextToken_WithSingleCharacterSymbol_ReturnsExpectedTokenTypeAndValue(string symbol, TokenType expectedType)
     {
-        var (lexer, diagnostics) = CreateLexer(symbol);
+        (Lexer lexer, DiagnosticBag diagnostics) = CreateLexer(symbol);
 
-        var token = lexer.NextToken();
-        var eof = lexer.NextToken();
+        Token token = lexer.NextToken();
+        Token eof = lexer.NextToken();
 
         Assert.Equal(expectedType, token.Type);
         Assert.Equal(symbol, token.Value);
@@ -100,10 +102,10 @@ public sealed class LexerTests
     [InlineData("camelCase")]
     public void NextToken_WithIdentifier_ReturnsIdentifierToken(string identifier)
     {
-        var (lexer, diagnostics) = CreateLexer(identifier);
+        (Lexer lexer, DiagnosticBag diagnostics) = CreateLexer(identifier);
 
-        var token = lexer.NextToken();
-        var eof = lexer.NextToken();
+        Token token = lexer.NextToken();
+        Token eof = lexer.NextToken();
 
         Assert.Equal(TokenType.Identifier, token.Type);
         Assert.Equal(identifier, token.Value);
@@ -113,25 +115,48 @@ public sealed class LexerTests
         Assert.False(diagnostics.HasErrors);
     }
 
+    [Fact]
+    public void NextToken_WithTypeKeyword_ReturnsTypeKeywordToken()
+    {
+        (Lexer lexer, DiagnosticBag diagnostics) = CreateLexer("@type");
+
+        Token token = lexer.NextToken();
+        Token eof = lexer.NextToken();
+
+        Assert.Equal(TokenType.TypeKeyword, token.Type);
+        Assert.Equal("@type", token.Value);
+        Assert.Equal(0, token.Location.Start.Position);
+        Assert.Equal(1, token.Location.Start.Line);
+        Assert.Equal(1, token.Location.Start.Column);
+        Assert.Equal(5, token.Location.End.Position);
+        Assert.Equal(1, token.Location.End.Line);
+        Assert.Equal(6, token.Location.End.Column);
+        Assert.Equal(TokenType.Eof, eof.Type);
+        Assert.False(diagnostics.HasErrors);
+    }
+
     [Theory]
     [InlineData("@module")]
     [InlineData("@import")]
-    [InlineData("@type")]
     [InlineData("@custom123")]
-    [InlineData("@")]
-    public void NextToken_WithKeyword_ReturnsKeywordToken(string keyword)
+    [InlineData("@typedef")]
+    public void NextToken_WithUnexpectedKeyword_ReturnsErrorTokenAndReportsDiagnostic(string keyword)
     {
-        var (lexer, diagnostics) = CreateLexer(keyword);
+        (Lexer lexer, DiagnosticBag diagnostics) = CreateLexer(keyword);
 
-        var token = lexer.NextToken();
-        var eof = lexer.NextToken();
+        Token token = lexer.NextToken();
 
-        Assert.Equal(TokenType.Keyword, token.Type);
+        Assert.Equal(TokenType.Error, token.Type);
         Assert.Equal(keyword, token.Value);
         Assert.Equal(0, token.Location.Start.Position);
         Assert.Equal(keyword.Length, token.Location.End.Position);
-        Assert.Equal(TokenType.Eof, eof.Type);
-        Assert.False(diagnostics.HasErrors);
+        Assert.True(diagnostics.HasErrors);
+
+        Diagnostic diagnostic = Assert.Single(diagnostics);
+        Assert.Equal(DiagnosticSeverity.Error, diagnostic.Descriptor.Severity);
+        Assert.Equal(CompilationStep.Lexing, diagnostic.Descriptor.Step);
+        Assert.Equal(1001, diagnostic.Descriptor.Code);
+        Assert.Contains(keyword, diagnostic.Message);
     }
 
     [Theory]
@@ -143,10 +168,10 @@ public sealed class LexerTests
     [InlineData(" \t\r\n  ")]
     public void NextToken_WithWhitespace_ReturnsWhitespaceToken(string whitespace)
     {
-        var (lexer, diagnostics) = CreateLexer(whitespace);
+        (Lexer lexer, DiagnosticBag diagnostics) = CreateLexer(whitespace);
 
-        var token = lexer.NextToken();
-        var eof = lexer.NextToken();
+        Token token = lexer.NextToken();
+        Token eof = lexer.NextToken();
 
         Assert.Equal(TokenType.Whitespace, token.Type);
         Assert.Equal(whitespace, token.Value);
@@ -163,17 +188,18 @@ public sealed class LexerTests
     [InlineData("?")]
     [InlineData("+")]
     [InlineData("1")]
+    [InlineData("@")]
     public void NextToken_WithUnexpectedCharacter_ReturnsErrorTokenAndReportsDiagnostic(string unexpected)
     {
-        var (lexer, diagnostics) = CreateLexer(unexpected);
+        (Lexer lexer, DiagnosticBag diagnostics) = CreateLexer(unexpected);
 
-        var token = lexer.NextToken();
+        Token token = lexer.NextToken();
 
         Assert.Equal(TokenType.Error, token.Type);
         Assert.Equal(unexpected, token.Value);
         Assert.True(diagnostics.HasErrors);
 
-        var diagnostic = Assert.Single(diagnostics);
+        Diagnostic diagnostic = Assert.Single(diagnostics);
         Assert.Equal(DiagnosticSeverity.Error, diagnostic.Descriptor.Severity);
         Assert.Equal(CompilationStep.Lexing, diagnostic.Descriptor.Step);
         Assert.Equal(1000, diagnostic.Descriptor.Code);
@@ -184,7 +210,7 @@ public sealed class LexerTests
     public void NextToken_TracksCoordinatesAndLocationsAccurately_AcrossNewlines()
     {
         const string source = "first\nsecond\n  third";
-        var tokens = LexAll(source, out var diagnostics);
+        List<Token> tokens = LexAll(source, out DiagnosticBag diagnostics);
 
         Assert.False(diagnostics.HasErrors);
         Assert.Equal(6, tokens.Count);
@@ -226,35 +252,35 @@ public sealed class LexerTests
     [Fact]
     public void NextToken_WithPdmlSourceSnippet_LexesAllTokensInExpectedOrder()
     {
-        const string source = "@module Core {\n  val: Type;\n}";
-        var tokens = LexAll(source, out var diagnostics);
+        const string source = "@type Core {\n  val: Type;\n}";
+        List<Token> tokens = LexAll(source, out DiagnosticBag diagnostics);
 
         Assert.False(diagnostics.HasErrors);
 
-        var expectedTokenTypes = new[]
+        TokenType[] expectedTokenTypes = new[]
         {
-            TokenType.Keyword,    // @module
-            TokenType.Whitespace, // " "
-            TokenType.Identifier, // Core
-            TokenType.Whitespace, // " "
-            TokenType.LBrace,     // {
-            TokenType.Whitespace, // "\n  "
-            TokenType.Identifier, // val
-            TokenType.Colon,      // :
-            TokenType.Whitespace, // " "
-            TokenType.Identifier, // Type
-            TokenType.Semicolon,  // ;
-            TokenType.Whitespace, // "\n"
-            TokenType.RBrace,     // }
+            TokenType.TypeKeyword, // @type
+            TokenType.Whitespace,  // " "
+            TokenType.Identifier,  // Core
+            TokenType.Whitespace,  // " "
+            TokenType.LBrace,      // {
+            TokenType.Whitespace,  // "\n  "
+            TokenType.Identifier,  // val
+            TokenType.Colon,       // :
+            TokenType.Whitespace,  // " "
+            TokenType.Identifier,  // Type
+            TokenType.Semicolon,   // ;
+            TokenType.Whitespace,  // "\n"
+            TokenType.RBrace,      // }
             TokenType.Eof
         };
 
-        var actualTokenTypes = tokens.Select(t => t.Type).ToArray();
+        TokenType[] actualTokenTypes = tokens.Select(t => t.Type).ToArray();
         Assert.Equal(expectedTokenTypes, actualTokenTypes);
 
-        var expectedValues = new[]
+        string[] expectedValues = new[]
         {
-            "@module",
+            "@type",
             " ",
             "Core",
             " ",
@@ -270,7 +296,7 @@ public sealed class LexerTests
             ""
         };
 
-        var actualValues = tokens.Select(t => t.Value).ToArray();
+        string[] actualValues = tokens.Select(t => t.Value).ToArray();
         Assert.Equal(expectedValues, actualValues);
     }
 
@@ -278,17 +304,45 @@ public sealed class LexerTests
     public void NextToken_WithGenericAnglesAndAmpersand_LexesCorrectSymbols()
     {
         const string source = "Type<T & U>";
-        var tokens = LexAll(source, out var diagnostics);
+        List<Token> tokens = LexAll(source, out DiagnosticBag diagnostics);
 
         Assert.False(diagnostics.HasErrors);
 
-        var expectedTokens = new (TokenType Type, string Value)[]
+        (TokenType Type, string Value)[] expectedTokens = new (TokenType Type, string Value)[]
         {
             (TokenType.Identifier, "Type"),
             (TokenType.LAngle, "<"),
             (TokenType.Identifier, "T"),
             (TokenType.Whitespace, " "),
             (TokenType.Ampersand, "&"),
+            (TokenType.Whitespace, " "),
+            (TokenType.Identifier, "U"),
+            (TokenType.RAngle, ">"),
+            (TokenType.Eof, "")
+        };
+
+        Assert.Equal(expectedTokens.Length, tokens.Count);
+        for (int i = 0; i < expectedTokens.Length; i++)
+        {
+            Assert.Equal(expectedTokens[i].Type, tokens[i].Type);
+            Assert.Equal(expectedTokens[i].Value, tokens[i].Value);
+        }
+    }
+
+    [Fact]
+    public void NextToken_WithGenericParametersAndComma_LexesCorrectTokens()
+    {
+        const string source = "Type<T, U>";
+        List<Token> tokens = LexAll(source, out DiagnosticBag diagnostics);
+
+        Assert.False(diagnostics.HasErrors);
+
+        (TokenType Type, string Value)[] expectedTokens = new (TokenType Type, string Value)[]
+        {
+            (TokenType.Identifier, "Type"),
+            (TokenType.LAngle, "<"),
+            (TokenType.Identifier, "T"),
+            (TokenType.Comma, ","),
             (TokenType.Whitespace, " "),
             (TokenType.Identifier, "U"),
             (TokenType.RAngle, ">"),

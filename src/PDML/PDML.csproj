@@ -9,4 +9,9 @@
       <PackageReference Include="Spectre.Console.Cli" Version="0.57.2" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\PDML.Compiler\PDML.Compiler.csproj" />
+      <ProjectReference Include="..\PDML.Generator.TypeScript\PDML.Generator.TypeScript.csproj" />
+    </ItemGroup>
+
 </Project>

@@ -22,7 +22,7 @@ public static class LexingError
         ArgumentCount = 1
     };
     
-    private enum Code
+    public enum Code
     {
         UnexpectedCharacter = 1000,
         UnexpectedKeyword

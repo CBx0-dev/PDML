@@ -1,0 +1,12 @@
+<Solution>
+    <Folder Name="/src/">
+        <Project Path="src/PDML.Compiler/PDML.Compiler.csproj" />
+        <Project Path="src/PDML.Generator.Abstractions/PDML.Generator.Abstractions.csproj" />
+        <Project Path="src/PDML.Generator.TypeScript/PDML.Generator.TypeScript.csproj" />
+        <Project Path="src/PDML.Generators.CSharp/PDML.Generators.CSharp.csproj" />
+        <Project Path="src/PDML/PDML.csproj" />
+    </Folder>
+    <Folder Name="/test/">
+    
+    </Folder>
+</Solution>

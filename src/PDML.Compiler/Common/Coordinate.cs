@@ -1,6 +1,6 @@
 namespace PDML.Compiler.Common;
 
-public sealed record Coordinate
+public struct Coordinate
 {
     public required int Position { get; set; }
     public required int Line { get; set; }

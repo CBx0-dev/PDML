@@ -6,11 +6,14 @@ public enum TokenType
     Eof,
     Whitespace,
     Identifier,
-    Keyword,
+
+    TypeKeyword,
 
     Ampersand,
     Colon,
     Semicolon,
+    Comma,
+    Equals,
     LBrace,
     RBrace,
     LAngle,

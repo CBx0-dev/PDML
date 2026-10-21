@@ -9,11 +9,22 @@ public static class LexingError
         Code = (int)Code.UnexpectedCharacter,
         Step = CompilationStep.Lexing,
         Severity = DiagnosticSeverity.Error,
-        MessageFormat = "Unexpected character '{0}'"
+        MessageFormat = "Unexpected character '{0}'",
+        ArgumentCount = 1
     };
 
+    public static readonly DiagnosticDescriptor UnexpectedKeyword = new DiagnosticDescriptor
+    {
+        Code = (int)Code.UnexpectedKeyword,
+        Step = CompilationStep.Lexing,
+        Severity = DiagnosticSeverity.Error,
+        MessageFormat = "Unexpected keyword '{0}'",
+        ArgumentCount = 1
+    };
+    
     private enum Code
     {
-        UnexpectedCharacter = 1000
+        UnexpectedCharacter = 1000,
+        UnexpectedKeyword
     }
 }

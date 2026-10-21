@@ -23,6 +23,19 @@ public sealed class Lexer
         }
     }
 
+    private char _next
+    {
+        get
+        {
+            if (_data.Position + 1 >= _sourceFile.Length)
+            {
+                return '\0';
+            }
+
+            return _sourceFile[_data.Position + 1];
+        }
+    }
+
     private bool _isEof => _data.Position >= _sourceFile.Length;
 
     public Lexer(DiagnosticBag diagnostics, SourceFile sourceFile)
@@ -40,7 +53,7 @@ public sealed class Lexer
 
     public Token NextToken()
     {
-        Coordinate start = _data with { };
+        Coordinate start = _data;
         if (_isEof)
         {
             return CreateToken(start, TokenType.Eof);
@@ -56,7 +69,7 @@ public sealed class Lexer
             return NextIdentifier(start);
         }
 
-        if (_current == '@')
+        if (_current == '@' && char.IsLetter(_next))
         {
             return NextKeyword(start);
         }
@@ -72,6 +85,10 @@ public sealed class Lexer
                 return CreateToken(start, TokenType.Colon);
             case ';':
                 return CreateToken(start, TokenType.Semicolon);
+            case ',':
+                return CreateToken(start, TokenType.Comma);
+            case '=':
+                return CreateToken(start, TokenType.Equals);
             case '{':
                 return CreateToken(start, TokenType.LBrace);
             case '}':
@@ -86,7 +103,7 @@ public sealed class Lexer
         {
             SourceFile = _sourceFile,
             Start = start,
-            End = _data with { }
+            End = _data
         };
 
         _diagnostics.Report(LexingError.UnexpectedCharacter, location, current);
@@ -121,31 +138,52 @@ public sealed class Lexer
             Skip();
         }
 
-        return CreateToken(start, TokenType.Keyword);
+        string content = _sourceFile.Content.Substring(start.Position, _data.Position - start.Position);
+        Location location = new Location
+        {
+            SourceFile = _sourceFile,
+            Start = start,
+            End = _data
+        };
+        TokenType type;
+
+        switch (content)
+        {
+            case "@type":
+                type = TokenType.TypeKeyword;
+                break;
+            default:
+                type = TokenType.Error;
+                _diagnostics.Report(LexingError.UnexpectedKeyword, location, content);
+                break;
+        }
+
+        return CreateToken(location, type, content);
     }
 
-    private Token CreateToken(Coordinate start, TokenType type)
+    private Token CreateToken(Coordinate start, TokenType type, string? value = null)
     {
         Location location = new Location
         {
             SourceFile = _sourceFile,
             Start = start,
-            End = _data with { }
+            End = _data
         };
 
-        return CreateToken(location, type);
+        return CreateToken(location, type, value);
     }
 
-    private Token CreateToken(Location location, TokenType type)
+    private Token CreateToken(Location location, TokenType type, string? value = null)
     {
         int start = location.Start.Position;
         int length = location.End.Position - start;
+        value ??= _sourceFile.Content.Substring(start, length);
 
         return new Token
         {
             Location = location,
             Type = type,
-            Value = _sourceFile.Content.Substring(start, length)
+            Value = value
         };
 
     }

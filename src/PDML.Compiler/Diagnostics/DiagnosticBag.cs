@@ -21,6 +21,11 @@ public sealed class DiagnosticBag : IEnumerable<Diagnostic>
 
     public void Report(DiagnosticDescriptor descriptor, Location location, params object[] args)
     {
+        if (args.Length != descriptor.ArgumentCount)
+        {
+            throw new ArgumentException($"Expected {descriptor.ArgumentCount} arguments, but got {args.Length}.", nameof(args));
+        }
+
         _diagnostics.Add(new Diagnostic
         {
             Location = location,

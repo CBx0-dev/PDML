@@ -19,6 +19,8 @@ public sealed class DiagnosticBag : IEnumerable<Diagnostic>
         _diagnostics = new List<Diagnostic>();
     }
 
+    public void Consume(DiagnosticBag other) => _diagnostics.AddRange(other._diagnostics);
+
     public void Report(DiagnosticDescriptor descriptor, Location location, params object[] args)
     {
         if (args.Length != descriptor.ArgumentCount)

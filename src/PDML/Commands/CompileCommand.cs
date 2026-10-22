@@ -1,3 +1,4 @@
+using GlobExpressions;
 using PDML.Compiler.Binding;
 using PDML.Compiler.Binding.Nodes;
 using PDML.Compiler.Common;
@@ -5,33 +6,53 @@ using PDML.Compiler.Diagnostics;
 using PDML.Compiler.Lexing;
 using PDML.Compiler.Parsing;
 using PDML.Compiler.Parsing.Nodes;
-using PDML.Generator.TypeScript;
+using PDML.Generator.Abstractions;
 using Spectre.Console.Cli;
 
 namespace PDML.Commands;
-
-internal sealed class CompileSettings : CommandSettings
-{
-}
 
 internal sealed class CompileCommand : AsyncCommand<CompileSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, CompileSettings settings, CancellationToken cancellationToken)
     {
-        SourceFile sourceFile = SourceFile.Create(
-            ".",
-            "test.pdml",
-            """
-            @type Test = {
-                foo: int32;
-            };
-
-            @type Foo = Test & {
-                bar: int32;
-            };
-            """
-        );
+        CodeGenerator generator = InitGenerator(settings.Generator, settings.DllFolders);
+        SourceFile[] sourceFiles = ReadFiles(settings.Paths);
+        
+       
         DiagnosticBag diagnostics = new DiagnosticBag();
+        List<BoundModule> modules = new List<BoundModule>();
+          
+
+        foreach (SourceFile sourceFile in sourceFiles)
+        {
+            BoundModule? module = ParseFile(sourceFile, out DiagnosticBag moduleDiagnostics);
+            diagnostics.Consume(moduleDiagnostics);
+            
+            if (module is not null)
+            {
+                modules.Add(module);
+            }
+        }
+
+
+        if (diagnostics.HasErrors)
+        {
+            DiagnosticPrinter.Print(diagnostics);
+            return 1;
+        }
+
+        foreach (BoundModule module in modules)
+        {
+            generator.GenerateModule(Console.Out, module);
+        }
+
+        return 0;
+    }
+
+    private BoundModule? ParseFile(SourceFile sourceFile, out DiagnosticBag diagnostics)
+    {
+        diagnostics = new DiagnosticBag();
+
         Lexer lexer = new Lexer(diagnostics, sourceFile);
         List<Token> tokens = new List<Token>();
         Token token;
@@ -47,27 +68,82 @@ internal sealed class CompileCommand : AsyncCommand<CompileSettings>
 
         if (diagnostics.HasErrors)
         {
-            return 1;
+            return null;
         }
 
         Parser parser = new Parser(diagnostics, tokens);
         Module module = parser.ParseModule();
-
         if (diagnostics.HasErrors)
         {
-            return 1;
+            return null;
         }
 
         BoundModule boundModule = Binder.BindModule(diagnostics, module);
-
         if (diagnostics.HasErrors)
         {
-            return 1;
+            return null;
         }
 
-        TypeScriptGenerator generator = new TypeScriptGenerator();
-        generator.GenerateModule(Console.Out, boundModule);
+        return boundModule;
+    }
 
-        return 0;
+    private CodeGenerator InitGenerator(string generatorKey, string[]? dllFolders)
+    {
+        GeneratorLoader.LookupPaths.Add(AppContext.BaseDirectory);
+
+        if (dllFolders is not null)
+        {
+            GeneratorLoader.LookupPaths.AddRange(dllFolders);
+        }
+
+        GeneratorLoader.LoadAssemblies();
+
+        CodeGenerator? generator = GeneratorLoader.LoadGenerator(generatorKey);
+        if (generator is null)
+        {
+            throw new ArgumentException($"Unknown generator '{generatorKey}'", nameof(generator));
+        }
+
+        return generator;
+    }
+
+    private SourceFile[] ReadFiles(string[] paths)
+    {
+        List<SourceFile> sourceFiles = new List<SourceFile>();
+
+        foreach (string path in paths)
+        {
+            IEnumerable<string> matches;
+
+            if (File.Exists(path))
+            {
+                matches = [path];
+            }
+            else if (Directory.Exists(path))
+            {
+                matches = Directory.GetFiles(path);
+            }
+            else if (path.IndexOfAny(['*', '?', '[', '{']) >= 0)
+            {
+                matches = Glob.Files(
+                    Directory.GetCurrentDirectory(),
+                    path.Replace('\\', '/')
+                );
+            }
+            else
+            {
+                continue;
+            }
+
+            foreach (string file in matches)
+            {
+                if (Path.GetExtension(file) == ".pdml")
+                {
+                    sourceFiles.Add(SourceFile.Read(file));   
+                }
+            }
+        }
+
+        return sourceFiles.ToArray();
     }
 }

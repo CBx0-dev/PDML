@@ -5,13 +5,19 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="Glob" Version="1.1.9" />
       <PackageReference Include="Spectre.Console" Version="0.57.2" />
       <PackageReference Include="Spectre.Console.Cli" Version="0.57.2" />
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\PDML.Compiler\PDML.Compiler.csproj" />
-      <ProjectReference Include="..\PDML.Generator.TypeScript\PDML.Generator.TypeScript.csproj" />
+	  <ProjectReference Include="..\PDML.Generator.TypeScript\PDML.Generator.TypeScript.csproj">
+		  <Private>true</Private>
+	  </ProjectReference>
+	  <ProjectReference Include="..\PDML.Generator.CSharp\PDML.Generator.CSharp.csproj">
+		  <Private>true</Private>
+	  </ProjectReference>
     </ItemGroup>
 
 </Project>

@@ -50,7 +50,7 @@ public static class GeneratorLoader
             } 
             catch
             {
-
+                // TODO thing about exceptions
             }
         }
     }

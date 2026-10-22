@@ -47,12 +47,18 @@ public sealed class TypeScriptGenerator : CodeGenerator
                     case IntrinsicType.Int8:
                     case IntrinsicType.Int16:
                     case IntrinsicType.Int32:
+                    case IntrinsicType.Float32:
+                    case IntrinsicType.Float64:
+                    case IntrinsicType.Decimal:
                         writer.Write("number");
                         break;
                     case IntrinsicType.Uint64:
                     case IntrinsicType.Int64:
                     case IntrinsicType.Char:
                     case IntrinsicType.String:
+                    case IntrinsicType.Date:
+                    case IntrinsicType.Time:
+                    case IntrinsicType.DateTime:
                         writer.Write("string");
                         break;
                     case IntrinsicType.Bool:

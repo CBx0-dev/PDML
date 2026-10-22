@@ -22,9 +22,4 @@
         <ProjectReference Include="..\..\src\PDML.Compiler\PDML.Compiler.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-        <Folder Include="Lexing\" />
-        <Folder Include="Parsing\" />
-    </ItemGroup>
-
 </Project>

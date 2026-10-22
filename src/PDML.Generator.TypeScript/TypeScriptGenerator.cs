@@ -2,7 +2,6 @@ using PDML.Compiler.Binding.Nodes.Members;
 using PDML.Compiler.Binding.Types;
 using PDML.Generator.Abstractions;
 
-
 namespace PDML.Generator.TypeScript;
 
 public sealed class TypeScriptGenerator : CodeGenerator
@@ -28,10 +27,10 @@ public sealed class TypeScriptGenerator : CodeGenerator
             writer.Write(name);
             writer.Write(": ");
             GenerateTypeRef(writer, property.Type);
-            writer.WriteLine(";");
+            writer.WriteLine(';');
         }
 
-        writer.WriteLine("}");
+        writer.WriteLine('}');
     }
 
     protected override void GenerateTypeRef(TextWriter writer, TypeRef typeRef)

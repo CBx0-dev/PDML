@@ -1,13 +1,14 @@
 <Solution>
     <Folder Name="/src/">
+        <Project Path="src/PDML/PDML.csproj" />
         <Project Path="src/PDML.Compiler/PDML.Compiler.csproj" />
         <Project Path="src/PDML.Generator.Abstractions/PDML.Generator.Abstractions.csproj" />
         <Project Path="src/PDML.Generator.TypeScript/PDML.Generator.TypeScript.csproj" />
-        <Project Path="src/PDML/PDML.csproj" />
-        <Project Path="src\PDML.Generator.CSharp\PDML.Generator.CSharp.csproj" />
+        <Project Path="src/PDML.Generator.CSharp/PDML.Generator.CSharp.csproj" />        
+        <Project Path="src/PDML.Generator.CSharp.Roslyn/PDML.Generator.CSharp.Roslyn.csproj" />
     </Folder>
     <Folder Name="/test/">
         <Project Path="test/PDML.Compiler.Tests/PDML.Compiler.Tests.csproj" />
-    
+        <Project Path="test/PDML.Generator.CSharp.Roslyn.Tests/PDML.Generator.CSharp.Roslyn.Tests.csproj" Id="467b7c49-a36e-481a-b994-43d9ce73dff3" />
     </Folder>
 </Solution>

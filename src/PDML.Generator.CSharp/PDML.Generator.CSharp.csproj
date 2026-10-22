@@ -2,5 +2,10 @@
 
     <PropertyGroup>
     </PropertyGroup>
+	
+	<ItemGroup>
+		<ProjectReference Include="..\PDML.Compiler\PDML.Compiler.csproj" />
+		<ProjectReference Include="..\PDML.Generator.Abstractions\PDML.Generator.Abstractions.csproj" />
+	</ItemGroup>
 
 </Project>

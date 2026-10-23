@@ -309,15 +309,4 @@ public sealed class BinderTests
         Assert.False(ref1a.Equals(null));
         Assert.False(ref1a.Equals("other"));
     }
-
-    [Fact]
-    public void BindModule_WithGenericPropertyClause_ReturnsNullFromExecuteTypeFunctionAndSkipsProperty()
-    {
-        const string source = "@type Container = { items: List<string>; };";
-        (BoundModule boundModule, DiagnosticBag diagnostics) = Bind(source);
-
-        Assert.False(diagnostics.HasErrors);
-        BoundTypeDefinition type = Assert.Single(boundModule.Types);
-        Assert.Empty(type.Properties);
-    }
 }

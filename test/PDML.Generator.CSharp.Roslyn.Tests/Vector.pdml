@@ -4,5 +4,5 @@
 };
 
 @type Vector3i = Vector2i & {
-	z: int32;
+	z: Vector2i;
 };

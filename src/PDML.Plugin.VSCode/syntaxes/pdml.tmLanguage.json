@@ -1,0 +1,73 @@
+
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "PDML",
+  "scopeName": "source.pdml",
+  "patterns": [
+    {
+      "include": "#keywords"
+    },
+    {
+      "include": "#identifiers"
+    },
+    {
+      "include": "#operators"
+    },
+    {
+      "include": "#punctuation"
+    },
+    {
+      "include": "#invalid-keywords"
+    }
+  ],
+  "repository": {
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.pdml",
+          "match": "@type\\b"
+        }
+      ]
+    },
+    "identifiers": {
+      "patterns": [
+        {
+          "name": "variable.other.pdml",
+          "match": "[A-Za-z][A-Za-z0-9]*"
+        }
+      ]
+    },
+    "operators": {
+      "patterns": [
+        {
+          "name": "keyword.operator.pdml",
+          "match": "[=&]"
+        }
+      ]
+    },
+    "punctuation": {
+      "patterns": [
+        {
+          "name": "punctuation.separator.pdml",
+          "match": "[:,;]"
+        },
+        {
+          "name": "punctuation.section.braces.pdml",
+          "match": "[{}]"
+        },
+        {
+          "name": "punctuation.definition.tag.pdml",
+          "match": "[<>]"
+        }
+      ]
+    },
+    "invalid-keywords": {
+      "patterns": [
+        {
+          "name": "invalid.illegal.keyword.pdml",
+          "match": "@[A-Za-z][A-Za-z0-9]*"
+        }
+      ]
+    }
+  }
+}

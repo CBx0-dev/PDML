@@ -1,0 +1,62 @@
+{
+    "name": "@pdml/vscode",
+    "version": "1.0.0",
+    "description": "VScode plugin for the PDML Language",
+    "author": "CBx0",
+    "publisher": "CBx0",
+    "license": "Apache-2.0",
+    "engines": {
+        "vscode": "^1.105.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "keywrods": [
+        "pdml",
+        "syntax-highlighting",
+        "language"
+    ],
+    "files": [
+        "syntaxes/**",
+        "language-configuration.json"
+    ],
+    "contributes": {
+        "languages": [
+            {
+                "id": "pdml",
+                "aliases": [
+                    "PDML",
+                    "pdml"
+                ],
+                "extensions": [
+                    ".pdml"
+                ],
+                "configuration": "./language-configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "pdml",
+                "scopeName": "source.pdml",
+                "path": "./syntaxes/pdml.tmLanguage.json"
+            }
+        ]
+    },
+    "scripts": {
+        "vscode:prepublish": "pnpm run check",
+        "check": "echo 'Checks defined'",
+        "package": "vsce package"
+    },
+    "devEngines": {
+        "packageManager": {
+            "name": "pnpm",
+            "version": "12.15.0",
+            "onFail": "download"
+        }
+    },
+    "packageManager": "pnpm@12.15.0",
+    "type": "module",
+    "devDependencies": {
+        "@vscode/vsce": "^4.0.0"
+    }
+}

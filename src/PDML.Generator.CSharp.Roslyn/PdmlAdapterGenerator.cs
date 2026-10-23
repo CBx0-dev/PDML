@@ -9,12 +9,30 @@ public sealed class PdmlAdapterGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        IncrementalValuesProvider<InputFile> inputs = context.AdditionalTextsProvider
-            .Where(static file => file.Path.EndsWith(".pdml"))
-            .Select(static (file, cancellationToken) => new InputFile
+        IncrementalValueProvider<string> targetNamespace = context.AnalyzerConfigOptionsProvider
+            .Select(static (provider, _) =>
             {
-                Path = file.Path,
-                Content = file.GetText(cancellationToken)?.ToString()
+                provider.GlobalOptions.TryGetValue(
+                    "build_property.PDMLNamespace",
+                    out var ns);
+
+                return ns ?? string.Empty;
+            });
+
+        IncrementalValuesProvider<InputFile> inputs = context.AdditionalTextsProvider
+            .Combine(targetNamespace)
+            .Where(static pair => pair.Left.Path.EndsWith(".pdml"))
+            .Select(static (pair, cancellationToken) =>
+            {
+                AdditionalText file = pair.Left;
+                string? targetNamespace = pair.Right;
+
+                return new InputFile
+                {
+                    Namespace = targetNamespace,
+                    Path = file.Path,
+                    Content = file.GetText(cancellationToken)?.ToString()
+                };
             });
 
         context.RegisterSourceOutput(
@@ -29,11 +47,12 @@ public sealed class PdmlAdapterGenerator : IIncrementalGenerator
                 if (PdmlCompiler.Compile(
                     input.Path,
                     input.Content,
+                    input.Namespace,
                     out string? csharpCode,
                     out Diagnostic[]? diagnostics)
                 )
                 {
-                    string hintName = Path.GetFileName(input.Path) + ".g.cs";
+                    string hintName = Path.GetFileNameWithoutExtension(input.Path) + ".g.cs";
 
                     productionContext.AddSource(
                         hintName,

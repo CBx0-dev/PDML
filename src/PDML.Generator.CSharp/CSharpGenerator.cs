@@ -1,4 +1,5 @@
-﻿using PDML.Compiler.Binding.Nodes.Members;
+﻿using PDML.Compiler.Binding.Nodes;
+using PDML.Compiler.Binding.Nodes.Members;
 using PDML.Compiler.Binding.Types;
 using PDML.Generator.Abstractions;
 
@@ -9,6 +10,16 @@ public sealed class CSharpGenerator : CodeGenerator
     public override string Name => "C#";
 
     public override string Key => "csharp";
+
+    public void GenerateModule(TextWriter writer, BoundModule module, string targetNamespace)
+    {
+        writer.Write("namespace ");
+        writer.Write(targetNamespace);
+        writer.WriteLine(';');
+        writer.WriteLine();
+
+        GenerateModule(writer, module);
+    }
 
     protected override void GenerateTypeDefinition(TextWriter writer, BoundTypeDefinition type)
     {

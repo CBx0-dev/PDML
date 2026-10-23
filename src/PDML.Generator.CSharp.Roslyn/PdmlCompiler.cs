@@ -14,6 +14,7 @@ internal static class PdmlCompiler
     public static bool Compile(
         string file, 
         string content,
+        string targetNamespace,
         [NotNullWhen(true)] out string? csharpCode,
         [NotNullWhen(false)] out Microsoft.CodeAnalysis.Diagnostic[]? roslynDiagnostics
     )
@@ -65,7 +66,7 @@ internal static class PdmlCompiler
         CSharpGenerator generator = new CSharpGenerator();
         StringWriter writer = new StringWriter();
 
-        generator.GenerateModule(writer, boundModule);
+        generator.GenerateModule(writer, boundModule, targetNamespace);
 
         csharpCode = writer.ToString();
         roslynDiagnostics = null;

@@ -6,9 +6,10 @@
         <Project Path="src/PDML.Generator.TypeScript/PDML.Generator.TypeScript.csproj" />
         <Project Path="src/PDML.Generator.CSharp/PDML.Generator.CSharp.csproj" />        
         <Project Path="src/PDML.Generator.CSharp.Roslyn/PDML.Generator.CSharp.Roslyn.csproj" />
+        <Project Path="src/PDML.Plugin.LSP/PDML.Plugin.LSP.csproj" />
     </Folder>
     <Folder Name="/test/">
         <Project Path="test/PDML.Compiler.Tests/PDML.Compiler.Tests.csproj" />
-        <Project Path="test/PDML.Generator.CSharp.Roslyn.Tests/PDML.Generator.CSharp.Roslyn.Tests.csproj" Id="467b7c49-a36e-481a-b994-43d9ce73dff3" />
+        <Project Path="test/PDML.Generator.CSharp.Roslyn.Tests/PDML.Generator.CSharp.Roslyn.Tests.csproj" />
     </Folder>
 </Solution>

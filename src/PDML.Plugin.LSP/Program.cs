@@ -1,9 +1,16 @@
-﻿namespace PDML.Plugin.LSP;
+﻿using OmniSharp.Extensions.LanguageServer.Server;
+
+namespace PDML.Plugin.LSP;
 
 internal class Program
 {
-    public static int Main()
+    public static async Task Main()
     {
-        return 0;
+        LanguageServer server = await LanguageServer.From(options => options
+            .WithInput(Console.OpenStandardInput())
+            .WithOutput(Console.OpenStandardOutput())
+        );
+
+        await server.WaitForExit;
     }
 }

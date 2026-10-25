@@ -11,10 +11,12 @@ namespace PDML.Plugin.LSP.Handlers;
 public class DiagnosticsHandler : TextDocumentSyncHandlerBase
 {
     private readonly ILanguageServerFacade _server;
+    private readonly DocumentStore _documentStore;
 
-    public DiagnosticsHandler(ILanguageServerFacade server)
+    public DiagnosticsHandler(ILanguageServerFacade server, DocumentStore? documentStore = null)
     {
         _server = server;
+        _documentStore = documentStore ?? new DocumentStore();
     }
 
     public override TextDocumentAttributes GetTextDocumentAttributes(DocumentUri uri)
@@ -35,6 +37,7 @@ public class DiagnosticsHandler : TextDocumentSyncHandlerBase
 
     public override Task<Unit> Handle(DidOpenTextDocumentParams request, CancellationToken cancellationToken)
     {
+        _documentStore.Update(request.TextDocument.Uri, request.TextDocument.Text);
         Analyze(request.TextDocument.Uri, request.TextDocument.Text);
         return Unit.Task;
     }
@@ -42,6 +45,7 @@ public class DiagnosticsHandler : TextDocumentSyncHandlerBase
     public override Task<Unit> Handle(DidChangeTextDocumentParams request, CancellationToken cancellationToken)
     {
         string text = request.ContentChanges.FirstOrDefault()?.Text ?? string.Empty;
+        _documentStore.Update(request.TextDocument.Uri, text);
         Analyze(request.TextDocument.Uri, text);
         return Unit.Task;
     }
@@ -53,6 +57,7 @@ public class DiagnosticsHandler : TextDocumentSyncHandlerBase
 
     public override Task<Unit> Handle(DidCloseTextDocumentParams request, CancellationToken cancellationToken)
     {
+        _documentStore.Remove(request.TextDocument.Uri);
         _server.TextDocument.PublishDiagnostics(new PublishDiagnosticsParams
         {
             Uri = request.TextDocument.Uri,

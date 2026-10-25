@@ -12,7 +12,7 @@
     "categories": [
         "Programming Languages"
     ],
-    "keywrods": [
+    "keywords": [
         "pdml",
         "syntax-highlighting",
         "language"
@@ -41,6 +41,37 @@
                 "language": "pdml",
                 "scopeName": "source.pdml",
                 "path": "./syntaxes/pdml.tmLanguage.json"
+            }
+        ],
+        "semanticTokenScopes": [
+            {
+                "language": "pdml",
+                "scopes": {
+                    "type": [
+                        "entity.name.type.pdml"
+                    ],
+                    "type.declaration": [
+                        "entity.name.type.declaration.pdml"
+                    ],
+                    "type.defaultLibrary": [
+                        "support.type.primitive.pdml",
+                        "entity.name.type.pdml"
+                    ],
+                    "property": [
+                        "variable.other.property.pdml",
+                        "entity.name.variable.field.pdml"
+                    ],
+                    "property.declaration": [
+                        "variable.other.property.pdml",
+                        "entity.name.variable.field.pdml"
+                    ],
+                    "keyword": [
+                        "keyword.control.pdml"
+                    ],
+                    "operator": [
+                        "keyword.operator.pdml"
+                    ]
+                }
             }
         ]
     },

@@ -53,6 +53,15 @@ public sealed class DiagnosticBag : IEnumerable<Diagnostic>
         });
     }
 
+    public void Report(DiagnosticDescriptor descriptor, Location location, Location? additonalLocation, params object[] args)
+    {
+        Location[] additonalLocations = additonalLocation is null
+            ? []
+            : [additonalLocation];
+
+        Report(descriptor, location, additonalLocations, args);
+    }
+
     public IEnumerator<Diagnostic> GetEnumerator() => _diagnostics.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

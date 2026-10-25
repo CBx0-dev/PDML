@@ -178,16 +178,10 @@ public sealed class Binder
                 BoundTypeDefinitionProperty boundProperty = new BoundTypeDefinitionProperty(property.Name.Location, typeRef);
                 if (body.TryGetValue(propertyName, out BoundTypeDefinitionProperty? existingProperty))
                 {
-                    List<Location> locations = new List<Location>();
-                    if (existingProperty.Location is not null)
-                    {
-                        locations.Add(existingProperty.Location);
-                    }
-
                     _diagnostics.Report(
                         BindingError.DuplicateProperty,
                         property.Name.Location,
-                        locations.ToArray(),
+                        existingProperty.Location,
                         propertyName
                     );
                 }
@@ -240,16 +234,10 @@ public sealed class Binder
             {
                 if (body.TryGetValue(propertyName, out BoundTypeDefinitionProperty? existingProperty))
                 {
-                    List<Location> locations = new List<Location>();
-                    if (existingProperty.Location is not null)
-                    {
-                        locations.Add(existingProperty.Location);
-                    }
-
                     _diagnostics.Report(
                         BindingError.DuplicatePropertyComposition,
                         item.Location,
-                        locations.ToArray(),
+                        existingProperty.Location,
                         propertyName,
                         itemTarget.Type.Name.Value
                     );

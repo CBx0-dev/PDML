@@ -5,6 +5,7 @@
     "author": "CBx0",
     "publisher": "CBx0",
     "license": "Apache-2.0",
+    "main": "./dist/main.js",
     "engines": {
         "vscode": "^1.105.0"
     },
@@ -17,6 +18,7 @@
         "language"
     ],
     "files": [
+        "dist/**",
         "syntaxes/**",
         "language-configuration.json"
     ],
@@ -45,7 +47,8 @@
     "scripts": {
         "vscode:prepublish": "pnpm run check",
         "check": "echo 'Checks defined'",
-        "package": "vsce package"
+        "package": "vsce package",
+        "compile": "tsc -p ./"
     },
     "devEngines": {
         "packageManager": {
@@ -57,6 +60,12 @@
     "packageManager": "pnpm@12.15.0",
     "type": "module",
     "devDependencies": {
-        "@vscode/vsce": "^4.0.0"
+        "@types/node": "^26.6.5",
+        "@types/vscode": "^1.140.0",
+        "@vscode/vsce": "^4.0.0",
+        "typescript": "^7.0.2"
+    },
+    "dependencies": {
+        "vscode-languageclient": "^11.0.0"
     }
 }

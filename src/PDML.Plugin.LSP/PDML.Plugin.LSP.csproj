@@ -11,4 +11,13 @@
     <PackageReference Include="OmniSharp.Extensions.LanguageServer" Version="0.19.11" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\PDML.Compiler\PDML.Compiler.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Handlers\" />
+    <InternalsVisibleTo Include="PDML.Plugin.LSP.Tests" />
+  </ItemGroup>
+
 </Project>

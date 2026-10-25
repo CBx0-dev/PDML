@@ -1,4 +1,5 @@
 ﻿using OmniSharp.Extensions.LanguageServer.Server;
+using PDML.Plugin.LSP.Handlers;
 
 namespace PDML.Plugin.LSP;
 
@@ -9,6 +10,7 @@ internal class Program
         LanguageServer server = await LanguageServer.From(options => options
             .WithInput(Console.OpenStandardInput())
             .WithOutput(Console.OpenStandardOutput())
+            .WithHandler<DiagnosticsHandler>()
         );
 
         await server.WaitForExit;

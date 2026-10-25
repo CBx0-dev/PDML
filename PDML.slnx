@@ -11,5 +11,6 @@
     <Folder Name="/test/">
         <Project Path="test/PDML.Compiler.Tests/PDML.Compiler.Tests.csproj" />
         <Project Path="test/PDML.Generator.CSharp.Roslyn.Tests/PDML.Generator.CSharp.Roslyn.Tests.csproj" />
+        <Project Path="test/PDML.Plugin.LSP.Tests/PDML.Plugin.LSP.Tests.csproj" />
     </Folder>
 </Solution>

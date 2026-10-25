@@ -34,7 +34,7 @@ public static class GeneratorLoader
                 Assembly assembly = Assembly.LoadFile(dll);
                 foreach (Type type in assembly.GetTypes())
                 {
-                    if (type.IsAbstract || !type.IsAssignableTo(typeof(CodeGenerator)))
+                    if (type.IsAbstract || !typeof(CodeGenerator).IsAssignableFrom(type))
                     {
                         continue;
                     }

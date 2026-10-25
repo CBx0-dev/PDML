@@ -19,7 +19,7 @@ public sealed class Parser
         {
             if (_position >= _tokens.Count)
             {
-                return _tokens[^1];
+                return _tokens[_tokens.Count - 1];
             }
 
             return _tokens[_position];

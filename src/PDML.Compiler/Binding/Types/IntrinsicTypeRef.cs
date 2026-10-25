@@ -46,5 +46,5 @@ public class IntrinsicTypeRef : TypeRef
         return Type == other.Type;
     }
 
-    public override int GetHashCode() => HashCode.Combine(Type);
+    public override int GetHashCode() => Type.GetHashCode();
 }

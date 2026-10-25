@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <IsRoslynComponent>true</IsRoslynComponent>
     <IncludeBuildOutput>false</IncludeBuildOutput>
 	<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
@@ -11,6 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
+	<ProjectReference Include="../PDML.Compatibility/PDML.Compatibility.csproj" PrivateAssets="all" OutputItemType="Analyzer" />
 	<ProjectReference Include="../PDML.Compiler/PDML.Compiler.csproj" PrivateAssets="all" OutputItemType="Analyzer" />
 	<ProjectReference Include="../PDML.Generator.Abstractions/PDML.Generator.Abstractions.csproj" PrivateAssets="all" OutputItemType="Analyzer" />
 	<ProjectReference Include="../PDML.Generator.CSharp/PDML.Generator.CSharp.csproj" PrivateAssets="all" OutputItemType="Analyzer" />

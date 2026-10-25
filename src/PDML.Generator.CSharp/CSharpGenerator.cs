@@ -122,6 +122,6 @@ public sealed class CSharpGenerator : CodeGenerator
     private static string ConvertToPascalCase(string identifier)
     {
         string c = identifier[0].ToString();
-        return c.ToUpperInvariant() + identifier[1..];
+        return c.ToUpperInvariant() + identifier.Substring(1);
     }
 }

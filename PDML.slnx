@@ -1,6 +1,7 @@
 <Solution>
     <Folder Name="/src/">
         <Project Path="src/PDML/PDML.csproj" />
+        <Project Path="src/PDML.Compatibility/PDML.Compatibility.csproj" />
         <Project Path="src/PDML.Compiler/PDML.Compiler.csproj" />
         <Project Path="src/PDML.Generator.Abstractions/PDML.Generator.Abstractions.csproj" />
         <Project Path="src/PDML.Generator.TypeScript/PDML.Generator.TypeScript.csproj" />

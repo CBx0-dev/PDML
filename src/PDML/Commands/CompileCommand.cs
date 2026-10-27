@@ -18,7 +18,7 @@ internal sealed class CompileCommand : AsyncCommand<CompileSettings>
         CodeGenerator generator = InitGenerator(settings.Generator, settings.DllFolders);
         SourceFile[] sourceFiles = ReadFiles(settings.Paths);
         
-       
+        
         DiagnosticBag diagnostics = new DiagnosticBag();
         List<BoundModule> modules = new List<BoundModule>();
           

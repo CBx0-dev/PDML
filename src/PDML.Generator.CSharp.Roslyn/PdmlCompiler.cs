@@ -64,9 +64,13 @@ internal static class PdmlCompiler
         }
 
         CSharpGenerator generator = new CSharpGenerator();
-        StringWriter writer = new StringWriter();
+        CSharpGeneratorSettings settings = new CSharpGeneratorSettings
+        {
+            RootNamespace = targetNamespace
+        };
 
-        generator.GenerateModule(writer, boundModule, targetNamespace);
+        StringWriter writer = new StringWriter();
+        generator.GenerateModule(writer, settings, boundModule);
 
         csharpCode = writer.ToString();
         roslynDiagnostics = null;

@@ -16,9 +16,10 @@ internal sealed class CompileCommand : AsyncCommand<CompileSettings>
     public override async Task<int> ExecuteAsync(CommandContext context, CompileSettings settings, CancellationToken cancellationToken)
     {
         CodeGenerator generator = InitGenerator(settings.Generator, settings.DllFolders);
+        GeneratorSettings generatorSettings = GeneratorSettingsMapper.Map(settings.Properties, generator.SettingsType);
+
         SourceFile[] sourceFiles = ReadFiles(settings.Paths);
-        
-       
+
         DiagnosticBag diagnostics = new DiagnosticBag();
         List<BoundModule> modules = new List<BoundModule>();
           
@@ -43,7 +44,7 @@ internal sealed class CompileCommand : AsyncCommand<CompileSettings>
 
         foreach (BoundModule module in modules)
         {
-            generator.GenerateModule(Console.Out, module);
+            generator.GenerateModule(Console.Out, generatorSettings, module);
         }
 
         return 0;

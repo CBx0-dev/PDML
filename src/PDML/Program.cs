@@ -15,6 +15,6 @@ public static class Program
             config.AddCommand<CompileCommand>("compile");
         });
         
-        return app.Run(args);
+        return app.Run(args, [new PropertyArgumentPreprocessor()]);
     }
 }

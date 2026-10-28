@@ -4,12 +4,12 @@ using PDML.Generator.Abstractions;
 
 namespace PDML.Generator.TypeScript;
 
-public sealed class TypeScriptGenerator : CodeGenerator
+public sealed class TypeScriptGenerator : CodeGenerator<TypeScriptGeneratorSettings>
 {
     public override string Name => "TypeScript";
     public override string Key => "typescript";
 
-    protected override void GenerateTypeDefinition(TextWriter writer, BoundTypeDefinition type)
+    protected override void GenerateTypeDefinition(TextWriter writer, TypeScriptGeneratorSettings settings, BoundTypeDefinition type)
     {
         writer.Write("export interface ");
         writer.Write(type.Name);
@@ -26,14 +26,14 @@ public sealed class TypeScriptGenerator : CodeGenerator
             writer.Write("    ");
             writer.Write(name);
             writer.Write(": ");
-            GenerateTypeRef(writer, property.Type);
+            GenerateTypeRef(writer, settings, property.Type);
             writer.WriteLine(';');
         }
 
         writer.WriteLine('}');
     }
 
-    protected override void GenerateTypeRef(TextWriter writer, TypeRef typeRef)
+    protected override void GenerateTypeRef(TextWriter writer, TypeScriptGeneratorSettings settings, TypeRef typeRef)
     {
         switch (typeRef)
         {

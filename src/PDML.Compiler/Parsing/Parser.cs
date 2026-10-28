@@ -11,6 +11,7 @@ public sealed class Parser
     private readonly DiagnosticBag _diagnostics;
     private readonly List<Token> _tokens;
 
+    private bool _lastMatchIsError;
     private int _position;
 
     private Token _current
@@ -32,6 +33,7 @@ public sealed class Parser
     {
         _diagnostics = diagnostics;
         _tokens = tokens;
+        _lastMatchIsError = false;
         _position = 0;
     }
 
@@ -221,10 +223,16 @@ public sealed class Parser
 
         if (current.Type == type)
         {
+            _lastMatchIsError = false;
             return current;
         }
 
-        _diagnostics.Report(ParsingError.ExpectedToken, current.Location, type.GetDisplayString(), current.Type.GetDisplayString());
+        if (!_lastMatchIsError)
+        {
+            _diagnostics.Report(ParsingError.ExpectedToken, current.Location, type.GetDisplayString(), current.Type.GetDisplayString());
+        }
+
+        _lastMatchIsError = true;
         return new Token
         {
             Location = current.Location,

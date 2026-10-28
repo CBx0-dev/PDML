@@ -5,23 +5,23 @@ using PDML.Generator.Abstractions;
 
 namespace PDML.Generator.CSharp;
 
-public sealed class CSharpGenerator : CodeGenerator
+public sealed class CSharpGenerator : CodeGenerator<CSharpGeneratorSettings>
 {
     public override string Name => "C#";
 
     public override string Key => "csharp";
 
-    public void GenerateModule(TextWriter writer, BoundModule module, string targetNamespace)
+    public override void GenerateModule(TextWriter writer, CSharpGeneratorSettings settings, BoundModule module)
     {
         writer.Write("namespace ");
-        writer.Write(targetNamespace);
+        writer.Write(settings.RootNamespace);
         writer.WriteLine(';');
         writer.WriteLine();
 
-        GenerateModule(writer, module);
+        base.GenerateModule(writer, settings, module);
     }
 
-    protected override void GenerateTypeDefinition(TextWriter writer, BoundTypeDefinition type)
+    protected override void GenerateTypeDefinition(TextWriter writer, CSharpGeneratorSettings settings, BoundTypeDefinition type)
     {
         writer.Write("public record ");
         writer.Write(type.Name);
@@ -37,7 +37,7 @@ public sealed class CSharpGenerator : CodeGenerator
         foreach ((string name, BoundTypeDefinitionProperty property) in type.Properties)
         {
             writer.Write("    public required ");
-            GenerateTypeRef(writer, property.Type);
+            GenerateTypeRef(writer, settings, property.Type);
             writer.Write(' ');
             writer.Write(ConvertToPascalCase(name));
             writer.WriteLine(" { get; set; }");
@@ -46,7 +46,7 @@ public sealed class CSharpGenerator : CodeGenerator
         writer.WriteLine('}');
     }
 
-    protected override void GenerateTypeRef(TextWriter writer, TypeRef typeRef)
+    protected override void GenerateTypeRef(TextWriter writer, CSharpGeneratorSettings settings, TypeRef typeRef)
     {
         switch (typeRef)
         {

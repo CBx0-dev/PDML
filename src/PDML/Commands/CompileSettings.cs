@@ -19,7 +19,7 @@ internal sealed class CompileSettings : CommandSettings
     [Description("The generator key that determines the output file format")]
     public required string Generator { get; init; }
 
-    [CommandOption("-p <VALUE>", true)]
+    [CommandOption("-p <VALUE>")]
     [Description("Options to pass to the generator")]
-    public required ILookup<string, string> Properties { get; init; }
+    public ILookup<string, string>? Properties { get; init; }
 }

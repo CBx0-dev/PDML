@@ -6,10 +6,12 @@ public enum TokenType
     Eof,
     Whitespace,
     Identifier,
+    String,
 
     TypeKeyword,
     ImportKeyword,
     FromKeyword,
+
 
     Ampersand,
     Colon,

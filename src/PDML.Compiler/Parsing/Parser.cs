@@ -67,14 +67,53 @@ public sealed class Parser
 
     private Member? ParseMember()
     {
-        if (_current.Type is TokenType.TypeKeyword)
+        switch (_current.Type)
         {
-            return ParseTypeDefinitionMember();
+            case TokenType.ImportKeyword:
+                return ParseImportMember();
+            case TokenType.TypeKeyword:
+                return ParseTypeDefinitionMember();
         }
+        
 
         _diagnostics.Report(ParsingError.UnexpectedToken, _current.Location, _current.Type.GetDisplayString());
         _position++;
         return null;
+    }
+
+    private Member ParseImportMember()
+    {
+        Token importKeyword = Match(TokenType.ImportKeyword);
+        Token lBrace = Match(TokenType.LBrace);
+        DelimitedList<Token> symbols = new DelimitedList<Token>();
+        
+        if (_current.Type != TokenType.RBrace)
+        {
+            symbols.AddItem(Match(TokenType.Identifier));
+
+            while (_isEof && _current.Type != TokenType.RBrace)
+            {
+                symbols.AddDelimiter(Match(TokenType.Comma));
+                symbols.AddItem(Match(TokenType.Identifier));
+            }
+        }
+        
+        Token rBrace = Match(TokenType.RBrace);
+        Token fromKeyword = Match(TokenType.FromKeyword);
+        Token locator = Match(TokenType.String);
+        Token semicolon = Match(TokenType.Semicolon);
+
+        return new ImportMember
+        {
+            Location = Location.Merge(importKeyword.Location, semicolon.Location),
+            ImportKeyword = importKeyword,
+            LBrace = lBrace,
+            Symbols = symbols,
+            RBrace = rBrace,
+            FromKeyword = fromKeyword,
+            Locator = locator,
+            Semicolon = semicolon
+        };
     }
 
     private Member ParseTypeDefinitionMember()

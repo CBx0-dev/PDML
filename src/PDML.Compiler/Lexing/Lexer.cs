@@ -68,6 +68,10 @@ public sealed class Lexer
         {
             return NextIdentifier(start);
         }
+        if (_current == '"')
+        {
+            return NextString(start);
+        }
 
         char current = _current;
         Skip();
@@ -129,7 +133,7 @@ public sealed class Lexer
             Start = start,
             End = _data
         };
-        var type = content switch
+        TokenType type = content switch
         {
             "type" => TokenType.TypeKeyword,
             "import" => TokenType.ImportKeyword,
@@ -138,6 +142,48 @@ public sealed class Lexer
         };
 
         return CreateToken(location, type, content);
+    }
+
+    private Token NextString(Coordinate start)
+    {
+        Skip();
+
+        while (!_isEof && _current != '"')
+        {
+            if (_current == '\n')
+            {
+                Location location = new Location
+                {
+                    SourceFile = _sourceFile,
+                    Start = start,
+                    End = _data
+                };
+                _diagnostics.Report(LexingError.UnterminatedString, location);
+                return CreateToken(location, TokenType.Error);
+            }
+
+            if (_current == '\\')
+            {
+                Skip();
+            }
+
+            Skip();
+        }
+
+        if (_current != '"')
+        {
+            Location location = new Location
+            {
+                SourceFile = _sourceFile,
+                Start = start,
+                End = _data
+            };
+            _diagnostics.Report(LexingError.UnterminatedString, location);
+            return CreateToken(location, TokenType.Error);
+        }
+        Skip();
+
+        return CreateToken(start, TokenType.String);
     }
 
     private Token CreateToken(Coordinate start, TokenType type, string? value = null)

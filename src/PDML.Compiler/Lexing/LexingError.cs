@@ -21,10 +21,20 @@ public static class LexingError
         MessageFormat = "Unexpected keyword '{0}'",
         ArgumentCount = 1
     };
-    
+
+    public static readonly DiagnosticDescriptor UnterminatedString = new DiagnosticDescriptor
+    {
+        Code = (int)Code.UnterminatedString,
+        Step = CompilationStep.Lexing,
+        Severity =DiagnosticSeverity.Error,
+        MessageFormat = "Unterminated string",
+        ArgumentCount = 1
+    };
+
     public enum Code
     {
         UnexpectedCharacter = 1000,
-        UnexpectedKeyword
+        UnexpectedKeyword,
+        UnterminatedString
     }
 }

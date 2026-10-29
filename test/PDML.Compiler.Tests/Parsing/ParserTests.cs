@@ -46,14 +46,14 @@ public sealed class ParserTests
     [Fact]
     public void ParseModule_WithTypeAliasToTarget_ParsesTypeDefinitionMember()
     {
-        const string source = "@type MyType = Target;";
+        const string source = "type MyType = Target;";
         (Module module, DiagnosticBag diagnostics) = Parse(source);
 
         Assert.False(diagnostics.HasErrors);
         TypeDefinitionMember member = Assert.IsType<TypeDefinitionMember>(Assert.Single(module.Members));
 
         Assert.Equal(TokenType.TypeKeyword, member.TypeKeyword.Type);
-        Assert.Equal("@type", member.TypeKeyword.Value);
+        Assert.Equal("type", member.TypeKeyword.Value);
 
         Assert.Equal(TokenType.Identifier, member.Name.Type);
         Assert.Equal("MyType", member.Name.Value);
@@ -77,7 +77,7 @@ public sealed class ParserTests
     [Fact]
     public void ParseModule_WithTypeInheritance_ParsesColonAndInheritingType()
     {
-        const string source = "@type Derived : Base = Target;";
+        const string source = "type Derived : Base = Target;";
         (Module module, DiagnosticBag diagnostics) = Parse(source);
 
         Assert.False(diagnostics.HasErrors);
@@ -98,7 +98,7 @@ public sealed class ParserTests
     [Fact]
     public void ParseModule_WithGenericInheritingType_ParsesGenericTypeSignature()
     {
-        const string source = "@type Child : Parent<T, U> = Target;";
+        const string source = "type Child : Parent<T, U> = Target;";
         (Module module, DiagnosticBag diagnostics) = Parse(source);
 
         Assert.False(diagnostics.HasErrors);
@@ -125,7 +125,7 @@ public sealed class ParserTests
     public void ParseModule_WithTypeDefinitionBody_ParsesPropertiesAndTypeClauses()
     {
         const string source = """
-            @type User = {
+            type User = {
                 id: Guid;
                 name: String;
             };
@@ -159,7 +159,7 @@ public sealed class ParserTests
     [Fact]
     public void ParseModule_WithEmptyTypeDefinitionBody_ParsesEmptyProperties()
     {
-        const string source = "@type Empty = {};";
+        const string source = "type Empty = {};";
         (Module module, DiagnosticBag diagnostics) = Parse(source);
 
         Assert.False(diagnostics.HasErrors);
@@ -174,7 +174,7 @@ public sealed class ParserTests
     [Fact]
     public void ParseModule_WithCompositionOfTargetAndBody_ParsesAllItemsAndAmpersands()
     {
-        const string source = "@type Entity = BaseType & { id: int64; } & Timestamped;";
+        const string source = "type Entity = BaseType & { id: int64; } & Timestamped;";
         (Module module, DiagnosticBag diagnostics) = Parse(source);
 
         Assert.False(diagnostics.HasErrors);
@@ -199,7 +199,7 @@ public sealed class ParserTests
     [Fact]
     public void ParseModule_WithNestedGenericPropertyType_ParsesHierarchy()
     {
-        const string source = "@type Container = { data: Map<String, List<Result<int32, Error>>>; };";
+        const string source = "type Container = { data: Map<String, List<Result<int32, Error>>>; };";
         (Module module, DiagnosticBag diagnostics) = Parse(source);
 
         Assert.False(diagnostics.HasErrors);
@@ -235,9 +235,9 @@ public sealed class ParserTests
     public void ParseModule_WithMultipleTypeDefinitions_ParsesAllMembers()
     {
         const string source = """
-            @type First = { a: int32; };
-            @type Second : First = { b: String; };
-            @type Third = First & Second;
+            type First = { a: int32; };
+            type Second : First = { b: String; };
+            type Third = First & Second;
             """;
         (Module module, DiagnosticBag diagnostics) = Parse(source);
 

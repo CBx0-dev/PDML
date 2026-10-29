@@ -15,11 +15,11 @@ public class PdmlSemanticTokensTests
     [Fact]
     public void CollectTokens_BasicTypeDefinitionWithProperties()
     {
-        string content = "@type User = {\n    id: int32;\n    name: string;\n};";
+        string content = "type User = {\n    id: int32;\n    name: string;\n};";
         List<SemanticTokenInfo> tokens = PdmlSemanticTokens.CollectTokens(content);
 
         // Expected tokens:
-        // Line 0: @type (Keyword)
+        // Line 0: type (Keyword)
         // Line 0: User (Type, Declaration)
         // Line 0: = (Operator)
         // Line 1: id (Property, Declaration)
@@ -29,9 +29,9 @@ public class PdmlSemanticTokensTests
 
         Assert.Equal(7, tokens.Count);
 
-        Assert.Equal(new SemanticTokenInfo(0, 0, 5, SemanticTokenType.Keyword, Array.Empty<SemanticTokenModifier>()), tokens[0]);
-        Assert.Equal(new SemanticTokenInfo(0, 6, 4, SemanticTokenType.Type, new[] { SemanticTokenModifier.Declaration }), tokens[1]);
-        Assert.Equal(new SemanticTokenInfo(0, 11, 1, SemanticTokenType.Operator, Array.Empty<SemanticTokenModifier>()), tokens[2]);
+        Assert.Equal(new SemanticTokenInfo(0, 0, 4, SemanticTokenType.Keyword, Array.Empty<SemanticTokenModifier>()), tokens[0]);
+        Assert.Equal(new SemanticTokenInfo(0, 5, 4, SemanticTokenType.Type, new[] { SemanticTokenModifier.Declaration }), tokens[1]);
+        Assert.Equal(new SemanticTokenInfo(0, 10, 1, SemanticTokenType.Operator, Array.Empty<SemanticTokenModifier>()), tokens[2]);
 
         Assert.Equal(new SemanticTokenInfo(1, 4, 2, SemanticTokenType.Property, new[] { SemanticTokenModifier.Declaration }), tokens[3]);
         Assert.Equal(new SemanticTokenInfo(1, 8, 5, SemanticTokenType.Type, new[] { SemanticTokenModifier.DefaultLibrary }), tokens[4]);
@@ -43,7 +43,7 @@ public class PdmlSemanticTokensTests
     [Fact]
     public void CollectTokens_InheritanceAndComposition()
     {
-        string content = "@type Admin : User = BaseUser & {\n    role: string;\n};";
+        string content = "type Admin : User = BaseUser & {\n    role: string;\n};";
         List<SemanticTokenInfo> tokens = PdmlSemanticTokens.CollectTokens(content);
 
         // Expected tokens:
@@ -58,12 +58,12 @@ public class PdmlSemanticTokensTests
 
         Assert.Equal(8, tokens.Count);
 
-        Assert.Equal(new SemanticTokenInfo(0, 0, 5, SemanticTokenType.Keyword, Array.Empty<SemanticTokenModifier>()), tokens[0]);
-        Assert.Equal(new SemanticTokenInfo(0, 6, 5, SemanticTokenType.Type, new[] { SemanticTokenModifier.Declaration }), tokens[1]);
-        Assert.Equal(new SemanticTokenInfo(0, 14, 4, SemanticTokenType.Type, Array.Empty<SemanticTokenModifier>()), tokens[2]);
-        Assert.Equal(new SemanticTokenInfo(0, 19, 1, SemanticTokenType.Operator, Array.Empty<SemanticTokenModifier>()), tokens[3]);
-        Assert.Equal(new SemanticTokenInfo(0, 21, 8, SemanticTokenType.Type, Array.Empty<SemanticTokenModifier>()), tokens[4]);
-        Assert.Equal(new SemanticTokenInfo(0, 30, 1, SemanticTokenType.Operator, Array.Empty<SemanticTokenModifier>()), tokens[5]);
+        Assert.Equal(new SemanticTokenInfo(0, 0, 4, SemanticTokenType.Keyword, Array.Empty<SemanticTokenModifier>()), tokens[0]);
+        Assert.Equal(new SemanticTokenInfo(0, 5, 5, SemanticTokenType.Type, new[] { SemanticTokenModifier.Declaration }), tokens[1]);
+        Assert.Equal(new SemanticTokenInfo(0, 13, 4, SemanticTokenType.Type, Array.Empty<SemanticTokenModifier>()), tokens[2]);
+        Assert.Equal(new SemanticTokenInfo(0, 18, 1, SemanticTokenType.Operator, Array.Empty<SemanticTokenModifier>()), tokens[3]);
+        Assert.Equal(new SemanticTokenInfo(0, 20, 8, SemanticTokenType.Type, Array.Empty<SemanticTokenModifier>()), tokens[4]);
+        Assert.Equal(new SemanticTokenInfo(0, 29, 1, SemanticTokenType.Operator, Array.Empty<SemanticTokenModifier>()), tokens[5]);
 
         Assert.Equal(new SemanticTokenInfo(1, 4, 4, SemanticTokenType.Property, new[] { SemanticTokenModifier.Declaration }), tokens[6]);
         Assert.Equal(new SemanticTokenInfo(1, 10, 6, SemanticTokenType.Type, new[] { SemanticTokenModifier.DefaultLibrary }), tokens[7]);
@@ -72,7 +72,7 @@ public class PdmlSemanticTokensTests
     [Fact]
     public void CollectTokens_GenericsInTypeSignatures()
     {
-        string content = "@type Response = {\n    data: List<int32>;\n};";
+        string content = "type Response = {\n    data: List<int32>;\n};";
         List<SemanticTokenInfo> tokens = PdmlSemanticTokens.CollectTokens(content);
 
         // Expected tokens:
@@ -85,9 +85,9 @@ public class PdmlSemanticTokensTests
 
         Assert.Equal(6, tokens.Count);
 
-        Assert.Equal(new SemanticTokenInfo(0, 0, 5, SemanticTokenType.Keyword, Array.Empty<SemanticTokenModifier>()), tokens[0]);
-        Assert.Equal(new SemanticTokenInfo(0, 6, 8, SemanticTokenType.Type, new[] { SemanticTokenModifier.Declaration }), tokens[1]);
-        Assert.Equal(new SemanticTokenInfo(0, 15, 1, SemanticTokenType.Operator, Array.Empty<SemanticTokenModifier>()), tokens[2]);
+        Assert.Equal(new SemanticTokenInfo(0, 0, 4, SemanticTokenType.Keyword, Array.Empty<SemanticTokenModifier>()), tokens[0]);
+        Assert.Equal(new SemanticTokenInfo(0, 5, 8, SemanticTokenType.Type, new[] { SemanticTokenModifier.Declaration }), tokens[1]);
+        Assert.Equal(new SemanticTokenInfo(0, 14, 1, SemanticTokenType.Operator, Array.Empty<SemanticTokenModifier>()), tokens[2]);
 
         Assert.Equal(new SemanticTokenInfo(1, 4, 4, SemanticTokenType.Property, new[] { SemanticTokenModifier.Declaration }), tokens[3]);
         Assert.Equal(new SemanticTokenInfo(1, 10, 4, SemanticTokenType.Type, Array.Empty<SemanticTokenModifier>()), tokens[4]);
@@ -97,7 +97,7 @@ public class PdmlSemanticTokensTests
     [Fact]
     public void CollectTokens_MultipleTypeDefinitions()
     {
-        string content = "@type A = { id: int32; };\n@type B = A & { name: string; };";
+        string content = "type A = { id: int32; };\ntype B = A & { name: string; };";
         List<SemanticTokenInfo> tokens = PdmlSemanticTokens.CollectTokens(content);
 
         Assert.Equal(12, tokens.Count);

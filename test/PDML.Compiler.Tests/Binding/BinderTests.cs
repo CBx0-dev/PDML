@@ -49,7 +49,7 @@ public sealed class BinderTests
     [Fact]
     public void BindModule_WithSingleEmptyTypeDefinition_BindsSuccessfully()
     {
-        const string source = "@type User = {};";
+        const string source = "type User = {};";
         (BoundModule boundModule, DiagnosticBag diagnostics) = Bind(source);
 
         Assert.False(diagnostics.HasErrors);
@@ -64,7 +64,7 @@ public sealed class BinderTests
     public void BindModule_WithAllIntrinsicTypes_BindsPropertiesWithCorrectIntrinsicTypeRefs()
     {
         const string source = """
-                              @type AllIntrinsics = {
+                              type AllIntrinsics = {
                                   u8: uint8;
                                   u16: uint16;
                                   u32: uint32;
@@ -122,8 +122,8 @@ public sealed class BinderTests
     public void BindModule_WithCustomTypeReferenceProperty_BindsTypeDefinitionTypeRef()
     {
         const string source = """
-                              @type Role = { name: string; };
-                              @type User = { role: Role; };
+                              type Role = { name: string; };
+                              type User = { role: Role; };
                               """;
         (BoundModule boundModule, DiagnosticBag diagnostics) = Bind(source);
 
@@ -143,8 +143,8 @@ public sealed class BinderTests
     public void BindModule_WithForwardTypeReferenceProperty_BindsTypeDefinitionTypeRef()
     {
         const string source = """
-                              @type User = { role: Role; };
-                              @type Role = { name: string; };
+                              type User = { role: Role; };
+                              type Role = { name: string; };
                               """;
         (BoundModule boundModule, DiagnosticBag diagnostics) = Bind(source);
 
@@ -161,8 +161,8 @@ public sealed class BinderTests
     public void BindModule_WithInheritance_BindsInheritingType()
     {
         const string source = """
-                              @type Animal = { age: int32; };
-                              @type Dog : Animal = { barkSound: string; };
+                              type Animal = { age: int32; };
+                              type Dog : Animal = { barkSound: string; };
                               """;
         (BoundModule boundModule, DiagnosticBag diagnostics) = Bind(source);
 
@@ -180,9 +180,9 @@ public sealed class BinderTests
     public void BindModule_WithMultiLevelInheritance_BindsInheritanceChain()
     {
         const string source = """
-                              @type Base = { id: int64; };
-                              @type Middle : Base = { middleProp: string; };
-                              @type Leaf : Middle = { leafProp: bool; };
+                              type Base = { id: int64; };
+                              type Middle : Base = { middleProp: string; };
+                              type Leaf : Middle = { leafProp: bool; };
                               """;
         (BoundModule boundModule, DiagnosticBag diagnostics) = Bind(source);
 
@@ -202,9 +202,9 @@ public sealed class BinderTests
     public void BindModule_WithComposition_CopiesPropertiesFromTargetTypes()
     {
         const string source = """
-                              @type Identifiable = { id: int64; };
-                              @type Timestamped = { createdAt: int64; };
-                              @type Entity = Identifiable & Timestamped & { name: string; };
+                              type Identifiable = { id: int64; };
+                              type Timestamped = { createdAt: int64; };
+                              type Entity = Identifiable & Timestamped & { name: string; };
                               """;
         (BoundModule boundModule, DiagnosticBag diagnostics) = Bind(source);
 
@@ -220,7 +220,7 @@ public sealed class BinderTests
     [Fact]
     public void BindModule_WithMultipleBodyCompositions_MergesAllProperties()
     {
-        const string source = "@type Combined = { a: int32; } & { b: string; } & { c: bool; };";
+        const string source = "type Combined = { a: int32; } & { b: string; } & { c: bool; };";
         (BoundModule boundModule, DiagnosticBag diagnostics) = Bind(source);
 
         Assert.False(diagnostics.HasErrors);
@@ -236,9 +236,9 @@ public sealed class BinderTests
     public void BindModule_WithInheritanceAndComposition_BindsBothCorrectly()
     {
         const string source = """
-                              @type Parent = { parentProp: int32; };
-                              @type Mixin = { mixinProp: string; };
-                              @type Child : Parent = Mixin & { ownProp: bool; };
+                              type Parent = { parentProp: int32; };
+                              type Mixin = { mixinProp: string; };
+                              type Child : Parent = Mixin & { ownProp: bool; };
                               """;
         (BoundModule boundModule, DiagnosticBag diagnostics) = Bind(source);
 
@@ -256,19 +256,19 @@ public sealed class BinderTests
     [Fact]
     public void BindModule_PreservesLocationInformation()
     {
-        const string source = "@type User = { id: int64; };";
+        const string source = "type User = { id: int64; };";
         (BoundModule boundModule, DiagnosticBag diagnostics) = Bind(source);
 
         Assert.False(diagnostics.HasErrors);
         BoundTypeDefinition type = Assert.Single(boundModule.Types);
         Assert.NotNull(type.Location);
         Assert.Equal(1, type.Location.Start.Line);
-        Assert.Equal(7, type.Location.Start.Column);
+        Assert.Equal(6, type.Location.Start.Column);
 
         BoundTypeDefinitionProperty prop = type.Properties["id"];
         Assert.NotNull(prop.Location);
         Assert.Equal(1, prop.Location.Start.Line);
-        Assert.Equal(16, prop.Location.Start.Column);
+        Assert.Equal(15, prop.Location.Start.Column);
     }
 
     [Fact]

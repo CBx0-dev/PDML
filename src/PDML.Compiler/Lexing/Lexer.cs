@@ -69,11 +69,6 @@ public sealed class Lexer
             return NextIdentifier(start);
         }
 
-        if (_current == '@' && char.IsLetter(_next))
-        {
-            return NextKeyword(start);
-        }
-
         char current = _current;
         Skip();
 
@@ -127,17 +122,6 @@ public sealed class Lexer
             Skip();
         }
 
-        return CreateToken(start, TokenType.Identifier);
-    }
-
-    private Token NextKeyword(Coordinate start)
-    {
-        Skip();
-        while (!_isEof && char.IsLetterOrDigit(_current))
-        {
-            Skip();
-        }
-
         string content = _sourceFile.Content.Substring(start.Position, _data.Position - start.Position);
         Location location = new Location
         {
@@ -145,18 +129,11 @@ public sealed class Lexer
             Start = start,
             End = _data
         };
-        TokenType type;
-
-        switch (content)
+        var type = content switch
         {
-            case "@type":
-                type = TokenType.TypeKeyword;
-                break;
-            default:
-                type = TokenType.Error;
-                _diagnostics.Report(LexingError.UnexpectedKeyword, location, content);
-                break;
-        }
+            "type" => TokenType.TypeKeyword,
+            _ => TokenType.Identifier,
+        };
 
         return CreateToken(location, type, content);
     }

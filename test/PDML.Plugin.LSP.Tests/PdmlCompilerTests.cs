@@ -9,7 +9,7 @@ public class PdmlCompilerTests
     public void Compile_ValidPdml_ReturnsEmptyDiagnosticsAndTrue()
     {
         DocumentUri uri = DocumentUri.From("file:///path/to/valid.pdml");
-        string content = "@type Valid = { id: int32; };";
+        string content = "type Valid = { id: int32; };";
 
         bool result = PdmlCompiler.Compile(uri, content, out var boundModule, out Diagnostic[] diagnostics);
 
@@ -22,7 +22,7 @@ public class PdmlCompilerTests
     public void Compile_SyntaxError_ReturnsDiagnosticsAndFalse()
     {
         DocumentUri uri = DocumentUri.From("file:///path/to/invalid.pdml");
-        string content = "invalidToken @type Valid = Target;";
+        string content = "invalidToken type Valid = Target;";
 
         bool result = PdmlCompiler.Compile(uri, content, out var boundModule, out Diagnostic[] diagnostics);
 
@@ -36,7 +36,7 @@ public class PdmlCompilerTests
     public void Compile_FilePathOverload_ValidPdml_ReturnsEmptyDiagnostics()
     {
         string filePath = "/path/to/valid.pdml";
-        string content = "@type Valid = { id: int32; };";
+        string content = "type Valid = { id: int32; };";
 
         Diagnostic[] diagnostics = PdmlCompiler.Compile(filePath, content);
 
@@ -47,7 +47,7 @@ public class PdmlCompilerTests
     public void Compile_FilePathOverload_Error_ReturnsDiagnostics()
     {
         string filePath = "/path/to/error.pdml";
-        string content = "@type User = { id: int64; };\n@type User = { name: string; };";
+        string content = "type User = { id: int64; };\ntype User = { name: string; };";
 
         Diagnostic[] diagnostics = PdmlCompiler.Compile(filePath, content);
 

@@ -36,7 +36,7 @@ public class DiagnosticsHandlerTests
     public async Task HandleDidOpen_ValidPdml_PublishesEmptyDiagnostics()
     {
         DocumentUri uri = DocumentUri.From("file:///path/to/test.pdml");
-        string content = "@type Valid = { id: int32; };";
+        string content = "type Valid = { id: int32; };";
 
         PublishDiagnosticsParams? published = null;
         _textDocumentServer.When(x => x.PublishDiagnostics(Arg.Any<PublishDiagnosticsParams>()))
@@ -62,7 +62,7 @@ public class DiagnosticsHandlerTests
     public async Task HandleDidOpen_SyntaxError_PublishesParsingDiagnosticWithCorrectRange()
     {
         DocumentUri uri = DocumentUri.From("file:///path/to/test.pdml");
-        string content = "invalidToken @type Valid = Target;";
+        string content = "invalidToken type Valid = Target;";
 
         PublishDiagnosticsParams? published = null;
         _textDocumentServer.When(x => x.PublishDiagnostics(Arg.Any<PublishDiagnosticsParams>()))
@@ -89,40 +89,12 @@ public class DiagnosticsHandlerTests
     }
 
     [Fact]
-    public async Task HandleDidOpen_LexingError_PublishesLexingDiagnostic()
-    {
-        DocumentUri uri = DocumentUri.From("file:///path/to/test.pdml");
-        string content = "@invalid Valid = Target;";
-
-        PublishDiagnosticsParams? published = null;
-        _textDocumentServer.When(x => x.PublishDiagnostics(Arg.Any<PublishDiagnosticsParams>()))
-            .Do(x => published = x.Arg<PublishDiagnosticsParams>());
-
-        await _handler.Handle(new DidOpenTextDocumentParams
-        {
-            TextDocument = new TextDocumentItem
-            {
-                Uri = uri,
-                LanguageId = "pdml",
-                Version = 1,
-                Text = content
-            }
-        }, CancellationToken.None);
-
-        Assert.NotNull(published);
-        Assert.NotEmpty(published.Diagnostics);
-        Diagnostic diag = Assert.Single(published.Diagnostics, d => d.Code?.String == "PDML1001");
-        Assert.Equal(DiagnosticSeverity.Error, diag.Severity);
-        Assert.Equal("pdml", diag.Source);
-    }
-
-    [Fact]
     public async Task HandleDidOpen_BindingError_PublishesBindingDiagnosticWithRelatedInformation()
     {
         DocumentUri uri = DocumentUri.From("file:///path/to/test.pdml");
         string content = """
-                         @type User = { id: int64; };
-                         @type User = { name: string; };
+                         type User = { id: int64; };
+                         type User = { name: string; };
                          """;
 
         PublishDiagnosticsParams? published = null;
@@ -156,7 +128,7 @@ public class DiagnosticsHandlerTests
     public async Task HandleDidChange_PublishesUpdatedDiagnostics()
     {
         DocumentUri uri = DocumentUri.From("file:///path/to/test.pdml");
-        string updatedContent = "@type Incomplete";
+        string updatedContent = "type Incomplete";
 
         PublishDiagnosticsParams? published = null;
         _textDocumentServer.When(x => x.PublishDiagnostics(Arg.Any<PublishDiagnosticsParams>()))

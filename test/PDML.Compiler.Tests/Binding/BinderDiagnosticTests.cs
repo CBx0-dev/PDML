@@ -37,8 +37,8 @@ public sealed class BinderDiagnosticTests
     public void BindModule_WhenDuplicateTypeName_ReportsDuplicateNameDiagnostic()
     {
         const string source = """
-                              @type User = { id: int64; };
-                              @type User = { name: string; };
+                              type User = { id: int64; };
+                              type User = { name: string; };
                               """;
         DiagnosticBag diagnostics = Bind(source);
 
@@ -55,8 +55,8 @@ public sealed class BinderDiagnosticTests
     public void BindModule_WhenGenericFunctionInInheritance_ReportsFunctionNotAllowedDiagnostic()
     {
         const string source = """
-                              @type Base = {};
-                              @type Derived : Base<string> = {};
+                              type Base = {};
+                              type Derived : Base<string> = {};
                               """;
         DiagnosticBag diagnostics = Bind(source);
 
@@ -70,7 +70,7 @@ public sealed class BinderDiagnosticTests
     [Fact]
     public void BindModule_WhenUnknownTypeInPropertyClause_ReportsUnknownTypeDiagnostic()
     {
-        const string source = "@type User = { role: NonExistentType; };";
+        const string source = "type User = { role: NonExistentType; };";
         DiagnosticBag diagnostics = Bind(source);
 
         Assert.True(diagnostics.HasErrors);
@@ -82,7 +82,7 @@ public sealed class BinderDiagnosticTests
     [Fact]
     public void BindModule_WhenUnknownTypeInInheritance_ReportsUnknownTypeDiagnostic()
     {
-        const string source = "@type Dog : UnknownAnimal = {};";
+        const string source = "type Dog : UnknownAnimal = {};";
         DiagnosticBag diagnostics = Bind(source);
 
         Assert.True(diagnostics.HasErrors);
@@ -94,7 +94,7 @@ public sealed class BinderDiagnosticTests
     [Fact]
     public void BindModule_WhenUnknownTypeInComposition_ReportsUnknownTypeDiagnostic()
     {
-        const string source = "@type Entity = UnknownMixin & { id: int64; };";
+        const string source = "type Entity = UnknownMixin & { id: int64; };";
         DiagnosticBag diagnostics = Bind(source);
 
         Assert.True(diagnostics.HasErrors);
@@ -106,7 +106,7 @@ public sealed class BinderDiagnosticTests
     [Fact]
     public void BindModule_WhenIntrinsicTypeInInheritance_ReportsIntrinsicTypeNotAllowedDiagnostic()
     {
-        const string source = "@type SpecialInt : int32 = {};";
+        const string source = "type SpecialInt : int32 = {};";
         DiagnosticBag diagnostics = Bind(source);
 
         Assert.True(diagnostics.HasErrors);
@@ -118,7 +118,7 @@ public sealed class BinderDiagnosticTests
     [Fact]
     public void BindModule_WhenIntrinsicTypeInComposition_ReportsIntrinsicTypeNotAllowedDiagnostic()
     {
-        const string source = "@type Combined = int32 & { id: int64; };";
+        const string source = "type Combined = int32 & { id: int64; };";
         DiagnosticBag diagnostics = Bind(source);
 
         Assert.True(diagnostics.HasErrors);
@@ -130,7 +130,7 @@ public sealed class BinderDiagnosticTests
     [Fact]
     public void BindModule_WhenSelfCircularInheritance_ReportsCircularInheritanceDiagnostic()
     {
-        const string source = "@type SelfLoop : SelfLoop = {};";
+        const string source = "type SelfLoop : SelfLoop = {};";
         DiagnosticBag diagnostics = Bind(source);
 
         Assert.True(diagnostics.HasErrors);
@@ -144,8 +144,8 @@ public sealed class BinderDiagnosticTests
     public void BindModule_WhenDirectTwoTypeCircularInheritance_ReportsCircularInheritanceDiagnostic()
     {
         const string source = """
-                              @type A : B = {};
-                              @type B : A = {};
+                              type A : B = {};
+                              type B : A = {};
                               """;
         DiagnosticBag diagnostics = Bind(source);
 
@@ -160,9 +160,9 @@ public sealed class BinderDiagnosticTests
     public void BindModule_WhenThreeTypeCircularInheritance_ReportsCircularInheritanceDiagnostic()
     {
         const string source = """
-                              @type A : B = {};
-                              @type B : C = {};
-                              @type C : A = {};
+                              type A : B = {};
+                              type B : C = {};
+                              type C : A = {};
                               """;
         DiagnosticBag diagnostics = Bind(source);
 
@@ -177,7 +177,7 @@ public sealed class BinderDiagnosticTests
     public void BindModule_WhenDuplicatePropertyInSameBody_ReportsDuplicatePropertyDiagnostic()
     {
         const string source = """
-                              @type User = {
+                              type User = {
                                   id: int32;
                                   id: int64;
                               };
@@ -196,7 +196,7 @@ public sealed class BinderDiagnosticTests
     [Fact]
     public void BindModule_WhenDuplicatePropertyAcrossMultipleBodies_ReportsDuplicatePropertyDiagnostic()
     {
-        const string source = "@type User = { id: int32; } & { id: int64; };";
+        const string source = "type User = { id: int32; } & { id: int64; };";
         DiagnosticBag diagnostics = Bind(source);
 
         Assert.True(diagnostics.HasErrors);
@@ -210,8 +210,8 @@ public sealed class BinderDiagnosticTests
     public void BindModule_WhenDuplicatePropertyFromComposition_ReportsDuplicatePropertyCompositionDiagnostic()
     {
         const string source = """
-                              @type Base = { id: int64; };
-                              @type Derived = { id: string; } & Base;
+                              type Base = { id: int64; };
+                              type Derived = { id: string; } & Base;
                               """;
         DiagnosticBag diagnostics = Bind(source);
 
@@ -226,8 +226,8 @@ public sealed class BinderDiagnosticTests
     public void BindModule_WhenMultipleErrorsOccur_ReportsAllDiagnostics()
     {
         const string source = """
-                              @type A = { x: UnknownType1; };
-                              @type B = { y: UnknownType2; };
+                              type A = { x: UnknownType1; };
+                              type B = { y: UnknownType2; };
                               """;
         DiagnosticBag diagnostics = Bind(source);
 
@@ -240,8 +240,8 @@ public sealed class BinderDiagnosticTests
     {
         // When duplicate name error occurs in header phase, inheritance/body/composition phases abort early
         const string source = """
-                              @type A = { x: int32; };
-                              @type A : NonExistent = { y: int32; };
+                              type A = { x: int32; };
+                              type A : NonExistent = { y: int32; };
                               """;
         DiagnosticBag diagnostics = Bind(source);
 

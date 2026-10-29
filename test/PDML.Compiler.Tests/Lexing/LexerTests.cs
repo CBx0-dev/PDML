@@ -118,19 +118,19 @@ public sealed class LexerTests
     [Fact]
     public void NextToken_WithTypeKeyword_ReturnsTypeKeywordToken()
     {
-        (Lexer lexer, DiagnosticBag diagnostics) = CreateLexer("@type");
+        (Lexer lexer, DiagnosticBag diagnostics) = CreateLexer("type");
 
         Token token = lexer.NextToken();
         Token eof = lexer.NextToken();
 
         Assert.Equal(TokenType.TypeKeyword, token.Type);
-        Assert.Equal("@type", token.Value);
+        Assert.Equal("type", token.Value);
         Assert.Equal(0, token.Location.Start.Position);
         Assert.Equal(1, token.Location.Start.Line);
         Assert.Equal(1, token.Location.Start.Column);
-        Assert.Equal(5, token.Location.End.Position);
+        Assert.Equal(4, token.Location.End.Position);
         Assert.Equal(1, token.Location.End.Line);
-        Assert.Equal(6, token.Location.End.Column);
+        Assert.Equal(5, token.Location.End.Column);
         Assert.Equal(TokenType.Eof, eof.Type);
         Assert.False(diagnostics.HasErrors);
     }
@@ -160,14 +160,14 @@ public sealed class LexerTests
     [Fact]
     public void NextToken_WithPdmlSourceSnippet_LexesAllTokensInExpectedOrder()
     {
-        const string source = "@type Core {\n  val: Type;\n}";
+        const string source = "type Core {\n  val: Type;\n}";
         List<Token> tokens = LexAll(source, out DiagnosticBag diagnostics);
 
         Assert.False(diagnostics.HasErrors);
 
         TokenType[] expectedTokenTypes = new[]
         {
-            TokenType.TypeKeyword, // @type
+            TokenType.TypeKeyword, // type
             TokenType.Whitespace,  // " "
             TokenType.Identifier,  // Core
             TokenType.Whitespace,  // " "
@@ -188,7 +188,7 @@ public sealed class LexerTests
 
         string[] expectedValues = new[]
         {
-            "@type",
+            "type",
             " ",
             "Core",
             " ",

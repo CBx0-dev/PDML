@@ -15,29 +15,6 @@ public sealed class LexerDiagnosticTests
     }
 
     [Theory]
-    [InlineData("@module")]
-    [InlineData("@import")]
-    [InlineData("@custom123")]
-    [InlineData("@typedef")]
-    public void NextToken_WithUnexpectedKeyword_ReturnsErrorTokenAndReportsDiagnostic(string keyword)
-    {
-        (Lexer lexer, DiagnosticBag diagnostics) = CreateLexer(keyword);
-
-        Token token = lexer.NextToken();
-
-        Assert.Equal(TokenType.Error, token.Type);
-        Assert.Equal(keyword, token.Value);
-        Assert.Equal(0, token.Location.Start.Position);
-        Assert.Equal(keyword.Length, token.Location.End.Position);
-        Assert.True(diagnostics.HasErrors);
-
-        Diagnostic diagnostic = Assert.Single(diagnostics);
-        Assert.Equal(DiagnosticSeverity.Error, diagnostic.Descriptor.Severity);
-        Assert.Equal(CompilationStep.Lexing, diagnostic.Descriptor.Step);
-        Assert.Equal((int)LexingError.Code.UnexpectedKeyword, diagnostic.Descriptor.Code);
-    }
-
-    [Theory]
     [InlineData("$")]
     [InlineData("#")]
     [InlineData("!")]

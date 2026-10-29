@@ -1,8 +1,8 @@
-@type Vector2i = {
+type Vector2i = {
 	x: int32;
 	y: int32;
 };
 
-@type Vector3i = Vector2i & {
+type Vector3i = Vector2i & {
 	z: int32;
 };

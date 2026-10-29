@@ -8,6 +8,8 @@ public enum TokenType
     Identifier,
 
     TypeKeyword,
+    ImportKeyword,
+    FromKeyword,
 
     Ampersand,
     Colon,

@@ -132,6 +132,8 @@ public sealed class Lexer
         var type = content switch
         {
             "type" => TokenType.TypeKeyword,
+            "import" => TokenType.ImportKeyword,
+            "from" => TokenType.FromKeyword,
             _ => TokenType.Identifier,
         };
 

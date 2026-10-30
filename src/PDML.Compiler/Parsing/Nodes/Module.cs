@@ -7,6 +7,7 @@ namespace PDML.Compiler.Parsing.Nodes;
 public record Module : Node
 {
     public IEnumerable<TypeDefinitionMember> TypeDefinitions => Members.OfType<TypeDefinitionMember>();
+    public IEnumerable<VirtualTypeDefinitionMember> VirtualTypeDefinitions => Members.OfType<VirtualTypeDefinitionMember>();
 
     public override required Location Location { get; init; }
 

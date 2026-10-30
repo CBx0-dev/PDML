@@ -23,21 +23,9 @@ internal static class PdmlCompiler
         
         string fileDirectory = Path.GetDirectoryName(file) ?? ".";
         string fileName = Path.GetFileName(file);
+
         SourceFile sourceFile = SourceFile.Create(fileDirectory, fileName, content);
-
-
-        Lexer lexer = new Lexer(diagnostics, sourceFile);
-        List<Token> tokens = new List<Token>();
-        Token token;
-
-        do
-        {
-            token = lexer.NextToken();
-            if (token.Type is not TokenType.Error and not TokenType.Whitespace)
-            {
-                tokens.Add(token);
-            }
-        } while (token.Type is not TokenType.Eof);
+        List<Token> tokens = Lexer.TokenizeAll(diagnostics, sourceFile);
 
         if (diagnostics.HasErrors)
         {

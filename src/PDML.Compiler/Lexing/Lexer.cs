@@ -68,9 +68,15 @@ public sealed class Lexer
         {
             return NextIdentifier(start);
         }
+
         if (_current == '"')
         {
             return NextString(start);
+        }
+        
+        if (_current == '/' && _next == '/')
+        {
+            return NextComment(start);
         }
 
         char current = _current;
@@ -136,6 +142,7 @@ public sealed class Lexer
         TokenType type = content switch
         {
             "type" => TokenType.TypeKeyword,
+            "virtual" => TokenType.VirtualKeyword,
             "import" => TokenType.ImportKeyword,
             "from" => TokenType.FromKeyword,
             _ => TokenType.Identifier,
@@ -143,7 +150,7 @@ public sealed class Lexer
 
         return CreateToken(location, type, content);
     }
-
+    
     private Token NextString(Coordinate start)
     {
         Skip();
@@ -186,6 +193,16 @@ public sealed class Lexer
         return CreateToken(start, TokenType.String);
     }
 
+    private Token NextComment(Coordinate start)
+    {
+        while (!_isEof && _current != '\n')
+        {
+            Skip();
+        }
+
+        return CreateToken(start, TokenType.Comment);
+    }
+
     private Token CreateToken(Coordinate start, TokenType type, string? value = null)
     {
         Location location = new Location
@@ -223,5 +240,25 @@ public sealed class Lexer
 
         _data.Column++;
         _data.Position++;
+    }
+
+    public static List<Token> TokenizeAll(DiagnosticBag diagnostics, SourceFile sourceFile)
+    {
+        Lexer lexer = new Lexer(diagnostics, sourceFile);
+        List<Token> tokens = new List<Token>();
+        Token token;
+
+        do
+        {
+            token = lexer.NextToken();
+            if (token.Type is TokenType.Error or TokenType.Whitespace or TokenType.Comment)
+            {
+                continue;
+            }
+
+            tokens.Add(token);
+        } while (token.Type != TokenType.Eof);
+
+        return tokens;
     }
 }

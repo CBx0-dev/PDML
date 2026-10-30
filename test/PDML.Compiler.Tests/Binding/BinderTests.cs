@@ -17,17 +17,7 @@ public sealed class BinderTests
         DiagnosticBag diagnostics = new DiagnosticBag();
         SourceFile sourceFile = SourceFile.Create(".", "test.pdml", content);
         Lexer lexer = new Lexer(diagnostics, sourceFile);
-        List<Token> tokens = new List<Token>();
-
-        Token token;
-        do
-        {
-            token = lexer.NextToken();
-            if (token.Type is not TokenType.Error and not TokenType.Whitespace)
-            {
-                tokens.Add(token);
-            }
-        } while (token.Type is not TokenType.Eof);
+        List<Token> tokens = Lexer.TokenizeAll(diagnostics, sourceFile);
 
         Parser parser = new Parser(diagnostics, tokens);
         Module module = parser.ParseModule();
@@ -292,8 +282,8 @@ public sealed class BinderTests
     [Fact]
     public void TypeRef_TypeDefinitionTypeRef_EqualsAndHashCode()
     {
-        BoundTypeDefinition def1 = new BoundTypeDefinition(null, "Foo", null, new Dictionary<string, BoundTypeDefinitionProperty>());
-        BoundTypeDefinition def2 = new BoundTypeDefinition(null, "Foo", null, new Dictionary<string, BoundTypeDefinitionProperty>());
+        BoundTypeDefinition def1 = new BoundTypeDefinition(null, "Foo", null, new Dictionary<string, BoundTypeDefinitionProperty>(), false);
+        BoundTypeDefinition def2 = new BoundTypeDefinition(null, "Foo", null, new Dictionary<string, BoundTypeDefinitionProperty>(), false);
 
         TypeDefinitionTypeRef ref1a = new TypeDefinitionTypeRef(def1);
         TypeDefinitionTypeRef ref1b = new TypeDefinitionTypeRef(def1);

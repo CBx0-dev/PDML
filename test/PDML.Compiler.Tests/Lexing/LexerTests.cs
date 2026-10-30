@@ -115,22 +115,24 @@ public sealed class LexerTests
         Assert.False(diagnostics.HasErrors);
     }
 
-    [Fact]
-    public void NextToken_WithTypeKeyword_ReturnsTypeKeywordToken()
+    [Theory]
+    [InlineData("type", TokenType.TypeKeyword)]
+    [InlineData("virtual", TokenType.VirtualKeyword)]
+    public void NextToken_WithIdentifier_ReturnsKeywordToken(string symbol, TokenType expectedType)
     {
-        (Lexer lexer, DiagnosticBag diagnostics) = CreateLexer("type");
+        (Lexer lexer, DiagnosticBag diagnostics) = CreateLexer(symbol);
 
         Token token = lexer.NextToken();
         Token eof = lexer.NextToken();
 
-        Assert.Equal(TokenType.TypeKeyword, token.Type);
-        Assert.Equal("type", token.Value);
+        Assert.Equal(expectedType, token.Type);
+        Assert.Equal(symbol, token.Value);
         Assert.Equal(0, token.Location.Start.Position);
         Assert.Equal(1, token.Location.Start.Line);
         Assert.Equal(1, token.Location.Start.Column);
-        Assert.Equal(4, token.Location.End.Position);
+        Assert.Equal(symbol.Length, token.Location.End.Position);
         Assert.Equal(1, token.Location.End.Line);
-        Assert.Equal(5, token.Location.End.Column);
+        Assert.Equal(symbol.Length + 1, token.Location.End.Column);
         Assert.Equal(TokenType.Eof, eof.Type);
         Assert.False(diagnostics.HasErrors);
     }

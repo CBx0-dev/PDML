@@ -73,8 +73,10 @@ public sealed class Parser
                 return ParseImportMember();
             case TokenType.TypeKeyword:
                 return ParseTypeDefinitionMember();
+            case TokenType.VirtualKeyword:
+                return ParseVirtualDefinitionMember();
+
         }
-        
 
         _diagnostics.Report(ParsingError.UnexpectedToken, _current.Location, _current.Type.GetDisplayString());
         _position++;
@@ -86,7 +88,7 @@ public sealed class Parser
         Token importKeyword = Match(TokenType.ImportKeyword);
         Token lBrace = Match(TokenType.LBrace);
         DelimitedList<Token> symbols = new DelimitedList<Token>();
-        
+
         if (_current.Type != TokenType.RBrace)
         {
             symbols.AddItem(Match(TokenType.Identifier));
@@ -97,7 +99,7 @@ public sealed class Parser
                 symbols.AddItem(Match(TokenType.Identifier));
             }
         }
-        
+
         Token rBrace = Match(TokenType.RBrace);
         Token fromKeyword = Match(TokenType.FromKeyword);
         Token locator = Match(TokenType.String);
@@ -146,6 +148,34 @@ public sealed class Parser
             Name = name,
             Colon = colon,
             InheritingType = inheritingType,
+            Equal = equal,
+            Items = items,
+            Semicolon = semicolon
+        };
+    }
+
+    private Member ParseVirtualDefinitionMember()
+    {
+        Token virtualKeyword = Match(TokenType.VirtualKeyword);
+        Token typeKeyword = Match(TokenType.TypeKeyword);
+        Token name = Match(TokenType.Identifier);
+        Token equal = Match(TokenType.Equals);
+        DelimitedList<TypeDefinitionItem, Token> items = new DelimitedList<TypeDefinitionItem, Token>();
+        items.AddItem(ParseTypeDefinitionItem());
+        while (!_isEof && _current.Type is not TokenType.Semicolon)
+        {
+            items.AddDelimiter(Match(TokenType.Ampersand));
+            items.AddItem(ParseTypeDefinitionItemBody());
+        }
+
+        Token semicolon = Match(TokenType.Semicolon);
+
+        return new VirtualTypeDefinitionMember
+        {
+            Location = Location.Merge(virtualKeyword.Location, semicolon.Location),
+            VirtualKeyword = virtualKeyword,
+            TypeKeyword = typeKeyword,
+            Name = name,
             Equal = equal,
             Items = items,
             Semicolon = semicolon

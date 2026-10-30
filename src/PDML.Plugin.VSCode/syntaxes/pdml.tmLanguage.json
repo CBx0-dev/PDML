@@ -1,84 +1,83 @@
-
 {
-  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
-  "name": "PDML",
-  "scopeName": "source.pdml",
-  "patterns": [
-    {
-      "include": "#keywords"
-    },
-    {
-      "include": "#types"
-    },
-    {
-      "include": "#identifiers"
-    },
-    {
-      "include": "#operators"
-    },
-    {
-      "include": "#punctuation"
-    },
-    {
-      "include": "#invalid-keywords"
-    }
-  ],
-  "repository": {
-    "keywords": {
-      "patterns": [
+    "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+    "name": "PDML",
+    "scopeName": "source.pdml",
+    "patterns": [
         {
-          "name": "keyword.control.pdml",
-          "match": "@type\\b"
-        }
-      ]
-    },
-    "types": {
-      "patterns": [
-        {
-          "name": "support.type.primitive.pdml",
-          "match": "\\b(uint8|uint16|uint32|uint64|int8|int16|int32|int64|float32|float64|decimal|char|bool|string|date|time|datetime)\\b"
-        }
-      ]
-    },
-    "identifiers": {
-      "patterns": [
-        {
-          "name": "variable.other.pdml",
-          "match": "[A-Za-z][A-Za-z0-9]*"
-        }
-      ]
-    },
-    "operators": {
-      "patterns": [
-        {
-          "name": "keyword.operator.pdml",
-          "match": "[=&]"
-        }
-      ]
-    },
-    "punctuation": {
-      "patterns": [
-        {
-          "name": "punctuation.separator.pdml",
-          "match": "[:,;]"
+            "include": "#keywords"
         },
         {
-          "name": "punctuation.section.braces.pdml",
-          "match": "[{}]"
+            "include": "#types"
         },
         {
-          "name": "punctuation.definition.tag.pdml",
-          "match": "[<>]"
-        }
-      ]
-    },
-    "invalid-keywords": {
-      "patterns": [
+            "include": "#identifiers"
+        },
         {
-          "name": "invalid.illegal.keyword.pdml",
-          "match": "@[A-Za-z][A-Za-z0-9]*"
+            "include": "#operators"
+        },
+        {
+            "include": "#punctuation"
+        },
+        {
+            "include": "#comments"
         }
-      ]
+    ],
+    "repository": {
+        "keywords": {
+            "patterns": [
+                {
+                    "name": "keyword.control.pdml",
+                    "match": "\\b(type|virtual)\\b"
+                }
+            ]
+        },
+        "types": {
+            "patterns": [
+                {
+                    "name": "support.type.primitive.pdml",
+                    "match": "\\b(uint8|uint16|uint32|uint64|int8|int16|int32|int64|float32|float64|decimal|char|bool|string|date|time|datetime)\\b"
+                }
+            ]
+        },
+        "identifiers": {
+            "patterns": [
+                {
+                    "name": "variable.other.pdml",
+                    "match": "[A-Za-z][A-Za-z0-9]*"
+                }
+            ]
+        },
+        "operators": {
+            "patterns": [
+                {
+                    "name": "keyword.operator.pdml",
+                    "match": "[=&]"
+                }
+            ]
+        },
+        "punctuation": {
+            "patterns": [
+                {
+                    "name": "punctuation.separator.pdml",
+                    "match": "[:,;]"
+                },
+                {
+                    "name": "punctuation.section.braces.pdml",
+                    "match": "[{}]"
+                },
+                {
+                    "name": "punctuation.definition.tag.pdml",
+                    "match": "[<>]"
+                }
+            ]
+        },
+        "comments": {
+            "patterns": [
+                {
+                    "name": "comment.line",
+                    "match": "//.*$"
+                }
+            ]
+        }
     }
-  }
 }

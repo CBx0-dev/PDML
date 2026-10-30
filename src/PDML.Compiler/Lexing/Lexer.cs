@@ -132,6 +132,7 @@ public sealed class Lexer
         var type = content switch
         {
             "type" => TokenType.TypeKeyword,
+            "virtual" => TokenType.VirtualKeyword,
             _ => TokenType.Identifier,
         };
 

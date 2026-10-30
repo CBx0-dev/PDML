@@ -14,17 +14,7 @@ public sealed class ParserTests
         DiagnosticBag diagnostics = new DiagnosticBag();
         SourceFile sourceFile = SourceFile.Create(".", "test.pdml", content);
         Lexer lexer = new Lexer(diagnostics, sourceFile);
-        List<Token> tokens = new List<Token>();
-
-        Token token;
-        do
-        {
-            token = lexer.NextToken();
-            if (token.Type is not TokenType.Error and not TokenType.Whitespace)
-            {
-                tokens.Add(token);
-            }
-        } while (token.Type is not TokenType.Eof);
+        List<Token> tokens = Lexer.TokenizeAll(diagnostics, sourceFile);
 
         Parser parser = new Parser(diagnostics, tokens);
         Module module = parser.ParseModule();

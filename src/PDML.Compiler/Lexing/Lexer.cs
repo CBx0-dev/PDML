@@ -68,6 +68,11 @@ public sealed class Lexer
         {
             return NextIdentifier(start);
         }
+        
+        if (_current == '/' && _next == '/')
+        {
+            return NextComment(start);
+        }
 
         char current = _current;
         Skip();
@@ -139,6 +144,16 @@ public sealed class Lexer
         return CreateToken(location, type, content);
     }
 
+    private Token NextComment(Coordinate start)
+    {
+        while (!_isEof && _current != '\n')
+        {
+            Skip();
+        }
+
+        return CreateToken(start, TokenType.Comment);
+    }
+
     private Token CreateToken(Coordinate start, TokenType type, string? value = null)
     {
         Location location = new Location
@@ -176,5 +191,25 @@ public sealed class Lexer
 
         _data.Column++;
         _data.Position++;
+    }
+
+    public static List<Token> TokenizeAll(DiagnosticBag diagnostics, SourceFile sourceFile)
+    {
+        Lexer lexer = new Lexer(diagnostics, sourceFile);
+        List<Token> tokens = new List<Token>();
+        Token token;
+
+        do
+        {
+            token = lexer.NextToken();
+            if (token.Type is TokenType.Error or TokenType.Whitespace or TokenType.Comment)
+            {
+                continue;
+            }
+
+            tokens.Add(token);
+        } while (token.Type != TokenType.Eof);
+
+        return tokens;
     }
 }

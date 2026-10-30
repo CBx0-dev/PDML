@@ -6,6 +6,7 @@ public enum TokenType
     Eof,
     Whitespace,
     Identifier,
+    Comment,
 
     TypeKeyword,
     VirtualKeyword,

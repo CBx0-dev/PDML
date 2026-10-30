@@ -19,7 +19,7 @@
             "include": "#punctuation"
         },
         {
-            "include": "#invalid-keywords"
+            "include": "#comments"
         }
     ],
     "repository": {
@@ -68,6 +68,14 @@
                 {
                     "name": "punctuation.definition.tag.pdml",
                     "match": "[<>]"
+                }
+            ]
+        },
+        "comments": {
+            "patterns": [
+                {
+                    "name": "comment.line",
+                    "match": "//.*$"
                 }
             ]
         }

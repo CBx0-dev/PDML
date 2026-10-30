@@ -8,6 +8,7 @@ public enum TokenType
     Identifier,
 
     TypeKeyword,
+    VirtualKeyword,
 
     Ampersand,
     Colon,

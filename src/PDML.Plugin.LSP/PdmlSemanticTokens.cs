@@ -9,52 +9,6 @@ using System.IO;
 
 namespace PDML.Plugin.LSP;
 
-internal readonly struct SemanticTokenInfo : IEquatable<SemanticTokenInfo>
-{
-    public int Line { get; }
-    public int Column { get; }
-    public int Length { get; }
-    public SemanticTokenType TokenType { get; }
-    public SemanticTokenModifier[] Modifiers { get; }
-
-    public SemanticTokenInfo(int line, int column, int length, SemanticTokenType tokenType, SemanticTokenModifier[] modifiers)
-    {
-        Line = line;
-        Column = column;
-        Length = length;
-        TokenType = tokenType;
-        Modifiers = modifiers;
-    }
-
-    public bool Equals(SemanticTokenInfo other)
-    {
-        return Line == other.Line &&
-               Column == other.Column &&
-               Length == other.Length &&
-               TokenType == other.TokenType &&
-               Modifiers.SequenceEqual(other.Modifiers);
-    }
-
-    public override bool Equals(object? obj) => obj is SemanticTokenInfo other && Equals(other);
-
-    public override int GetHashCode()
-    {
-        HashCode hash = new HashCode();
-        hash.Add(Line);
-        hash.Add(Column);
-        hash.Add(Length);
-        hash.Add(TokenType);
-        foreach (SemanticTokenModifier mod in Modifiers)
-        {
-            hash.Add(mod);
-        }
-        return hash.ToHashCode();
-    }
-
-    public override string ToString() =>
-        $"SemanticTokenInfo(Line={Line}, Column={Column}, Length={Length}, Type={TokenType}, Modifiers=[{string.Join(", ", Modifiers.Select(m => m.ToString()))}])";
-}
-
 internal static class PdmlSemanticTokens
 {
     private static readonly HashSet<string> IntrinsicTypes = new(StringComparer.Ordinal)
@@ -99,7 +53,7 @@ internal static class PdmlSemanticTokens
         // 1. Lexer tokens: keywords and operators
         foreach (Token tok in tokens)
         {
-            if (tok.Type == TokenType.TypeKeyword)
+            if (tok.Type is TokenType.TypeKeyword or TokenType.VirtualKeyword)
             {
                 AddToken(result, tok, SemanticTokenType.Keyword);
             }
@@ -113,6 +67,13 @@ internal static class PdmlSemanticTokens
         Parser parser = new Parser(diagnostics, tokens);
         Module module = parser.ParseModule();
 
+        foreach (VirtualTypeDefinitionMember def in module.VirtualTypeDefinitions)
+        {
+            AddToken(result, def.Name, SemanticTokenType.Type, SemanticTokenModifier.Declaration);
+
+            CollectTypeDefinitionItemsTokens(result, def.Items);
+        }
+
         foreach (TypeDefinitionMember def in module.TypeDefinitions)
         {
             AddToken(result, def.Name, SemanticTokenType.Type, SemanticTokenModifier.Declaration);
@@ -122,27 +83,32 @@ internal static class PdmlSemanticTokens
                 CollectTypeSignatureTokens(result, def.InheritingType);
             }
 
-            foreach (TypeDefinitionItem item in def.Items)
-            {
-                if (item is TypeDefinitionItemTarget target)
-                {
-                    CollectTypeSignatureTokens(result, target.Type);
-                }
-                else if (item is TypeDefinitionItemBody body)
-                {
-                    foreach (TypeDefinitionBodyProperty prop in body.Properties)
-                    {
-                        AddToken(result, prop.Name, SemanticTokenType.Property, SemanticTokenModifier.Declaration);
-                        CollectTypeSignatureTokens(result, prop.TypeClause.TypeSignature);
-                    }
-                }
-            }
+            CollectTypeDefinitionItemsTokens(result, def.Items);
         }
 
         return result
             .OrderBy(t => t.Line)
             .ThenBy(t => t.Column)
             .ToList();
+    }
+
+    private static void CollectTypeDefinitionItemsTokens(List<SemanticTokenInfo> result, IEnumerable<TypeDefinitionItem> items)
+    {
+        foreach (TypeDefinitionItem item in items)
+        {
+            if (item is TypeDefinitionItemTarget target)
+            {
+                CollectTypeSignatureTokens(result, target.Type);
+            }
+            else if (item is TypeDefinitionItemBody body)
+            {
+                foreach (TypeDefinitionBodyProperty prop in body.Properties)
+                {
+                    AddToken(result, prop.Name, SemanticTokenType.Property, SemanticTokenModifier.Declaration);
+                    CollectTypeSignatureTokens(result, prop.TypeClause.TypeSignature);
+                }
+            }
+        }
     }
 
     private static void CollectTypeSignatureTokens(List<SemanticTokenInfo> result, TypeSignature signature)

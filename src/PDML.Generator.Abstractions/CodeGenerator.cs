@@ -25,6 +25,11 @@ public abstract class CodeGenerator<TSettings> : CodeGenerator
     {
         foreach (BoundTypeDefinition type in module.Types)
         {
+            if (type.IsVirtual)
+            {
+                continue;
+            }
+            
             GenerateTypeDefinition(writer, settings, type);
             writer.WriteLine();
         }

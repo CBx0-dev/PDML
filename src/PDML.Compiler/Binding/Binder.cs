@@ -40,10 +40,32 @@ public sealed class Binder
             return;
         }
 
+        foreach (VirtualTypeDefinitionMember definition in _module.VirtualTypeDefinitions)
+        {
+            BindVirtualTypeDefinitionHeader(definition);
+        }
+
         foreach (TypeDefinitionMember definition in _module.TypeDefinitions)
         {
             BindTypeDefinitionHeader(definition);
         }
+    }
+
+    private void BindVirtualTypeDefinitionHeader(VirtualTypeDefinitionMember definition)
+    {
+        string name = definition.Name.Value;
+        if (_seenNames.TryGetValue(name, out Location? previousLocation))
+        {
+            _diagnostics.Report(BindingError.DuplicateName, definition.Name.Location, previousLocation, name);
+            return;
+        }
+
+        _seenNames.Add(name, definition.Name.Location);
+
+        Dictionary<string, BoundTypeDefinitionProperty> body = new Dictionary<string, BoundTypeDefinitionProperty>();
+        BoundTypeDefinition type = new BoundTypeDefinition(definition.Name.Location, name, null, body, true);
+
+        _types.Add(type, body);
     }
 
     private void BindTypeDefinitionHeader(TypeDefinitionMember definition)
@@ -51,14 +73,14 @@ public sealed class Binder
         string name = definition.Name.Value;
         if (_seenNames.TryGetValue(name, out Location? previousDeclaration))
         {
-            _diagnostics.Report(BindingError.DuplicateName, definition.Name.Location, [previousDeclaration], name);
+            _diagnostics.Report(BindingError.DuplicateName, definition.Name.Location, previousDeclaration, name);
             return;
         }
 
         _seenNames.Add(name, definition.Name.Location);
 
         Dictionary<string, BoundTypeDefinitionProperty> body = new Dictionary<string, BoundTypeDefinitionProperty>();
-        BoundTypeDefinition type = new BoundTypeDefinition(definition.Name.Location, name, null, body);
+        BoundTypeDefinition type = new BoundTypeDefinition(definition.Name.Location, name, null, body, false);
 
         _types.Add(type, body);
     }
@@ -137,18 +159,26 @@ public sealed class Binder
             return;
         }
 
+        foreach (VirtualTypeDefinitionMember definition in _module.VirtualTypeDefinitions)
+        {
+            BoundTypeDefinition type = _types.Keys.First(type => type.Name == definition.Name.Value);
+            Dictionary<string, BoundTypeDefinitionProperty> body = _types[type];
+
+            BindTypeDefinitionBasicBody(definition.Items, type, body);
+        }
+
         foreach (TypeDefinitionMember definition in _module.TypeDefinitions)
         {
             BoundTypeDefinition type = _types.Keys.First(type => type.Name == definition.Name.Value);
             Dictionary<string, BoundTypeDefinitionProperty> body = _types[type];
 
-            BindTypeDefinitionBasicBody(definition, type, body);
+            BindTypeDefinitionBasicBody(definition.Items, type, body);
         }
     }
 
-    private void BindTypeDefinitionBasicBody(TypeDefinitionMember definition, BoundTypeDefinition type, Dictionary<string, BoundTypeDefinitionProperty> body)
+    private void BindTypeDefinitionBasicBody(IEnumerable<TypeDefinitionItem> items, BoundTypeDefinition type, Dictionary<string, BoundTypeDefinitionProperty> body)
     {
-        foreach (TypeDefinitionItem item in definition.Items)
+        foreach (TypeDefinitionItem item in items)
         {
             if (item is not TypeDefinitionItemBody itemBody)
             {
@@ -200,18 +230,26 @@ public sealed class Binder
             return;
         }
 
+        foreach (VirtualTypeDefinitionMember definition in _module.VirtualTypeDefinitions)
+        {
+            BoundTypeDefinition type = _types.Keys.First(type => type.Name == definition.Name.Value);
+            Dictionary<string, BoundTypeDefinitionProperty> body = _types[type];
+
+            BindCompositionBody(definition.Items, type, body);
+        }
+
         foreach (TypeDefinitionMember definition in _module.TypeDefinitions)
         {
             BoundTypeDefinition type = _types.Keys.First(type => type.Name == definition.Name.Value);
             Dictionary<string, BoundTypeDefinitionProperty> body = _types[type];
 
-            BindCompositionBody(definition, type, body);
+            BindCompositionBody(definition.Items, type, body);
         }
     }
 
-    private void BindCompositionBody(TypeDefinitionMember definition, BoundTypeDefinition type, Dictionary<string, BoundTypeDefinitionProperty> body)
+    private void BindCompositionBody(IEnumerable<TypeDefinitionItem> items, BoundTypeDefinition type, Dictionary<string, BoundTypeDefinitionProperty> body)
     {
-        foreach (TypeDefinitionItem item in definition.Items)
+        foreach (TypeDefinitionItem item in items)
         {
             if (item is not TypeDefinitionItemTarget itemTarget)
             {
@@ -250,21 +288,11 @@ public sealed class Binder
         }
     }
 
-    private TypeRef? FindType(TypeClause target, bool allowSpecialFunctions)
-        => FindType(target.TypeSignature, allowSpecialFunctions);
+    private TypeRef? FindType(TypeClause target, bool allowVirtual)
+        => FindType(target.TypeSignature, allowVirtual);
 
-    private TypeRef? FindType(TypeSignature target, bool allowSpecialFunctions)
+    private TypeRef? FindType(TypeSignature target, bool allowVirtual)
     {
-        if (target.Generics is not null)
-        {
-            if (!allowSpecialFunctions)
-            {
-                return null;
-            }
-
-            return ExecuteTypeFunction();
-        }
-
         string name = target.Name.Value;
         switch (name)
         {
@@ -293,13 +321,19 @@ public sealed class Binder
         }
 
         BoundTypeDefinition? definition = _types.Keys.FirstOrDefault(t => t.Name == name);
-        if (definition is not null)
+        if (definition is null)
         {
-            return new TypeDefinitionTypeRef(definition);
+            _diagnostics.Report(BindingError.UnknownType, target.Name.Location, target.Name.Value);
+            return null;
+        }
+        if (!allowVirtual && definition.IsVirtual)
+        {
+            _diagnostics.Report(BindingError.VirtualTypeNotAllowed, target.Name.Location);
+            return null;
         }
 
-        _diagnostics.Report(BindingError.UnknownType, target.Name.Location, target.Name.Value);
-        return null;
+        return new TypeDefinitionTypeRef(definition);
+        
     }
 
     private TypeRef? ExecuteTypeFunction()

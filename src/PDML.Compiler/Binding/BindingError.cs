@@ -31,6 +31,15 @@ public static class BindingError
         ArgumentCount = 1
     };
 
+    public static readonly DiagnosticDescriptor VirtualTypeNotAllowed = new DiagnosticDescriptor
+    {
+        Code = (int)Code.VirtualTypeNotAllowed,
+        Step = CompilationStep.Binding,
+        Severity = DiagnosticSeverity.Error,
+        MessageFormat = "A virtual type is not allowed in this context",
+        ArgumentCount = 0
+    };
+
     public static readonly DiagnosticDescriptor IntrinsicTypeNotAllowed = new DiagnosticDescriptor
     {
         Code = (int)Code.IntrinsicTypeNotAllowed,
@@ -72,6 +81,7 @@ public static class BindingError
         DuplicateName = 3000,
         FunctionNotAllowed,
         UnknownType,
+        VirtualTypeNotAllowed,
         IntrinsicTypeNotAllowed,
         CircularInheritance,
         DuplicateProperty,

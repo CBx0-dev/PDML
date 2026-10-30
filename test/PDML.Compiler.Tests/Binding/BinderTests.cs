@@ -292,8 +292,8 @@ public sealed class BinderTests
     [Fact]
     public void TypeRef_TypeDefinitionTypeRef_EqualsAndHashCode()
     {
-        BoundTypeDefinition def1 = new BoundTypeDefinition(null, "Foo", null, new Dictionary<string, BoundTypeDefinitionProperty>());
-        BoundTypeDefinition def2 = new BoundTypeDefinition(null, "Foo", null, new Dictionary<string, BoundTypeDefinitionProperty>());
+        BoundTypeDefinition def1 = new BoundTypeDefinition(null, "Foo", null, new Dictionary<string, BoundTypeDefinitionProperty>(), false);
+        BoundTypeDefinition def2 = new BoundTypeDefinition(null, "Foo", null, new Dictionary<string, BoundTypeDefinitionProperty>(), false);
 
         TypeDefinitionTypeRef ref1a = new TypeDefinitionTypeRef(def1);
         TypeDefinitionTypeRef ref1b = new TypeDefinitionTypeRef(def1);

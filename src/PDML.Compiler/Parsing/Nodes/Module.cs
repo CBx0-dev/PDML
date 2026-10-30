@@ -6,6 +6,7 @@ namespace PDML.Compiler.Parsing.Nodes;
 
 public record Module : Node
 {
+    public IEnumerable<ImportMember> Imports => Members.OfType<ImportMember>();
     public IEnumerable<TypeDefinitionMember> TypeDefinitions => Members.OfType<TypeDefinitionMember>();
     public IEnumerable<VirtualTypeDefinitionMember> VirtualTypeDefinitions => Members.OfType<VirtualTypeDefinitionMember>();
 

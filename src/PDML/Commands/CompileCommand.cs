@@ -1,11 +1,7 @@
 using GlobExpressions;
-using PDML.Compiler.Binding;
+using PDML.Compiler;
 using PDML.Compiler.Binding.Nodes;
 using PDML.Compiler.Common;
-using PDML.Compiler.Diagnostics;
-using PDML.Compiler.Lexing;
-using PDML.Compiler.Parsing;
-using PDML.Compiler.Parsing.Nodes;
 using PDML.Generator.Abstractions;
 using Spectre.Console.Cli;
 
@@ -19,62 +15,24 @@ internal sealed class CompileCommand : AsyncCommand<CompileSettings>
         GeneratorSettings generatorSettings = GeneratorSettingsMapper.Map(settings.Properties, generator.SettingsType);
 
         SourceFile[] sourceFiles = ReadFiles(settings.Paths);
+        Compilation compilation = CompilerService.CompileEntryPoints(sourceFiles);
 
-        DiagnosticBag diagnostics = new DiagnosticBag();
-        List<BoundModule> modules = new List<BoundModule>();
-          
-
-        foreach (SourceFile sourceFile in sourceFiles)
+        if (compilation.Diagnostics.HasItems)
         {
-            BoundModule? module = ParseFile(sourceFile, out DiagnosticBag moduleDiagnostics);
-            diagnostics.Consume(moduleDiagnostics);
-            
-            if (module is not null)
-            {
-                modules.Add(module);
-            }
+            DiagnosticPrinter.Print(compilation.Diagnostics);
         }
 
-
-        if (diagnostics.HasErrors)
+        if (compilation.HasErrors)
         {
-            DiagnosticPrinter.Print(diagnostics);
             return 1;
         }
 
-        foreach (BoundModule module in modules)
+        foreach (BoundModule module in compilation.Modules)
         {
             generator.GenerateModule(Console.Out, generatorSettings, module);
         }
 
         return 0;
-    }
-
-    private BoundModule? ParseFile(SourceFile sourceFile, out DiagnosticBag diagnostics)
-    {
-        diagnostics = new DiagnosticBag();
-
-        List<Token> tokens = Lexer.TokenizeAll(diagnostics, sourceFile);
-
-        if (diagnostics.HasErrors)
-        {
-            return null;
-        }
-
-        Parser parser = new Parser(diagnostics, tokens);
-        Module module = parser.ParseModule();
-        if (diagnostics.HasErrors)
-        {
-            return null;
-        }
-
-        BoundModule boundModule = Binder.BindModule(diagnostics, module);
-        if (diagnostics.HasErrors)
-        {
-            return null;
-        }
-
-        return boundModule;
     }
 
     private CodeGenerator InitGenerator(string generatorKey, string[]? dllFolders)

@@ -3,34 +3,84 @@ using PDML.Compiler.Binding.Nodes.Members;
 using PDML.Compiler.Binding.Types;
 using PDML.Compiler.Common;
 using PDML.Compiler.Diagnostics;
+using PDML.Compiler.Lexing;
 using PDML.Compiler.Parsing.Nodes;
 using PDML.Compiler.Parsing.Nodes.Members;
+using System.Xml.Linq;
 
 namespace PDML.Compiler.Binding;
 
 public sealed class Binder
 {
+    private readonly string _projectRoot;
     private readonly DiagnosticBag _diagnostics;
     private readonly Module _module;
+    private readonly BoundModule[] _dependencies;
+    private readonly Dictionary<string, BoundTypeDefinition> _importedTypes;
     private readonly Dictionary<BoundTypeDefinition, Dictionary<string, BoundTypeDefinitionProperty>> _types;
     private readonly Dictionary<string, Location> _seenNames;
 
-    private Binder(DiagnosticBag diagnostics, Module module)
+    private Binder(string projectRoot, DiagnosticBag diagnostics, Module module, BoundModule[] dependencies)
     {
+        _projectRoot = projectRoot;
         _diagnostics = diagnostics;
         _module = module;
+        _dependencies = dependencies;
+        _importedTypes = new Dictionary<string, BoundTypeDefinition>();
         _types = new Dictionary<BoundTypeDefinition, Dictionary<string, BoundTypeDefinitionProperty>>();
         _seenNames = new Dictionary<string, Location>();
     }
 
     private BoundModule BindModule()
     {
+        BindImports();
         BindTypeDefinitionHeaders();
         BindTypeDefinitionInheritances();
         BindTypeDefinitionBasicBodies();
         BindTypeCompositionBodies();
 
-        return new BoundModule(_module.Location, _types.Keys.ToArray());
+        ModuleIdentity identity = ModuleIdentity.FromPath(_projectRoot, _module.Location.SourceFile.FilePath);
+        
+        return new BoundModule(_module.Location, identity, _dependencies, _types.Keys.ToArray());
+    }
+
+    private void BindImports()
+    {
+        if (_diagnostics.HasErrors)
+        {
+            return;
+        }
+        
+        foreach (ImportMember import in _module.Imports)
+        {
+            BindImport(import);
+        }
+    }
+
+    private void BindImport(ImportMember import)
+    {
+        string relativePath = TokenUtils.NormalizeString(import.Locator);
+        string absoultePath = Path.GetFullPath(Path.Combine(_projectRoot, relativePath));
+        BoundModule module = _dependencies.First(module => module.Identity.FilePath == absoultePath);
+
+        foreach (Token symbol in import.Symbols)
+        {
+            string symbolName = symbol.Value;
+            if (!module.TryGetSymbol(symbolName, out BoundTypeDefinition? importedType))
+            {
+                _diagnostics.Report(BindingError.UnknownImport, symbol.Location, symbolName, relativePath);
+                continue;
+            }
+
+            if (_seenNames.TryGetValue(symbolName, out Location? previousLocation))
+            {
+                _diagnostics.Report(BindingError.DuplicateName, symbol.Location, previousLocation, symbolName);
+                continue;
+            }
+
+            _seenNames.Add(symbolName, symbol.Location);
+            _importedTypes.Add(symbolName, importedType);
+        }
     }
 
     private void BindTypeDefinitionHeaders()
@@ -320,7 +370,10 @@ public sealed class Binder
                 return IntrinsicTypeRef.String;
         }
 
-        BoundTypeDefinition? definition = _types.Keys.FirstOrDefault(t => t.Name == name);
+        BoundTypeDefinition? definition = _types.Keys
+            .Concat(_importedTypes.Values)
+            .FirstOrDefault(t => t.Name == name);
+
         if (definition is null)
         {
             _diagnostics.Report(BindingError.UnknownType, target.Name.Location, target.Name.Value);
@@ -342,9 +395,9 @@ public sealed class Binder
         return null;
     }
 
-    public static BoundModule BindModule(DiagnosticBag diagnostics, Module module)
+    public static BoundModule BindModule(string projectRoot, DiagnosticBag diagnostics, Module module, BoundModule[] dependencies)
     {
-        Binder binder = new Binder(diagnostics, module);
+        Binder binder = new Binder(projectRoot, diagnostics, module, dependencies);
 
         return binder.BindModule();
     }

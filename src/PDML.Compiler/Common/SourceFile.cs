@@ -13,6 +13,8 @@ public sealed record SourceFile
 
     public static SourceFile Read(string path)
     {
+        path = Path.GetFullPath(path);
+
         string directory = Path.GetDirectoryName(path) ?? ".";
         string fileName = Path.GetFileName(path);
         string content = File.ReadAllText(path);

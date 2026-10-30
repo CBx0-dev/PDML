@@ -1,3 +1,5 @@
+import { Foo } from "./Utils";
+
 virtual type PropX = {
 	x: int32;
 };
@@ -8,4 +10,8 @@ type Vector2i = PropX & {
 
 type Vector3i = Vector2i & {
 	z: int32;
+};
+
+type FooBar : Foo = {
+	fooBar: int32;
 };

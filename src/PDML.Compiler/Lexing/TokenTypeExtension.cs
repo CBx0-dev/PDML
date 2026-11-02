@@ -14,8 +14,18 @@ public static class TokenTypeExtension
                 return "<WHITESPACE>";
             case TokenType.Identifier:
                 return "<IDENTIFIER>";
+            case TokenType.Comment:
+                return "<COMMENT>";
+            case TokenType.String:
+                return "<STRING>";
             case TokenType.TypeKeyword:
-                return "@type";
+                return "type";
+            case TokenType.VirtualKeyword:
+                return "virtual";
+            case TokenType.ImportKeyword:
+                return "import";
+            case TokenType.FromKeyword:
+                return "from";
             case TokenType.Ampersand:
                 return "&";
             case TokenType.Colon:
@@ -36,20 +46,6 @@ public static class TokenTypeExtension
                 return ">";
             default:
                 throw new ArgumentOutOfRangeException(nameof(type), type, null);
-        }
-    }
-
-    public static bool IsKeyword(this TokenType type)
-    {
-        switch (type)
-        {
-            case TokenType.TypeKeyword:
-            case TokenType.VirtualKeyword:
-            case TokenType.ImportKeyword:
-            case TokenType.FromKeyword:
-                return true;
-            default:
-                return false;
         }
     }
 }

@@ -2,11 +2,9 @@ using PDML.Compiler.Binding.Nodes;
 using PDML.Compiler.Binding.Nodes.Members;
 using PDML.Compiler.Binding.Types;
 using PDML.Compiler.Common;
-using PDML.Compiler.Diagnostics;
 using PDML.Compiler.Lexing;
 using PDML.Compiler.Parsing.Nodes;
 using PDML.Compiler.Parsing.Nodes.Members;
-using System.Xml.Linq;
 using PDML.Compiler.Diagnostics.Abstractions;
 
 namespace PDML.Compiler.Binding;

@@ -1,5 +1,4 @@
 ﻿using PDML.Compiler.Binding.Nodes;
-using PDML.Compiler.Diagnostics;
 using PDML.Compiler.Diagnostics.Abstractions;
 
 namespace PDML.Compiler;
@@ -10,7 +9,8 @@ public sealed class Compilation
 
     public DiagnosticBag Diagnostics { get; }
 
-    public IReadOnlyList<BoundModule> Modules { 
+    public IReadOnlyList<BoundModule> Modules
+    {
         get
         {
             if (_modules is null)
@@ -29,4 +29,6 @@ public sealed class Compilation
         _modules = modules;
         Diagnostics = diagnostics;
     }
+
+    public static Compilation Empty(DiagnosticBag diagnostics) => new Compilation(diagnostics, null);
 }

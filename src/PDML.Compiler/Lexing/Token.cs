@@ -1,5 +1,4 @@
 using PDML.Compiler.Common;
-using System.Text;
 
 namespace PDML.Compiler.Lexing;
 

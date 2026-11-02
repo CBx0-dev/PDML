@@ -1,7 +1,6 @@
 ﻿using PDML.Compiler.Binding;
 using PDML.Compiler.Binding.Nodes;
 using PDML.Compiler.Common;
-using PDML.Compiler.Diagnostics;
 using PDML.Compiler.Diagnostics.Abstractions;
 using PDML.Compiler.Lexing;
 using PDML.Compiler.Parsing;
@@ -13,20 +12,19 @@ namespace PDML.Compiler;
 public class CompilerService
 {
     private readonly IDiagnosticService _diagnosticService;
-    private readonly List<SourceFile> _sourceFiles;
-    private Dictionary<string, ModuleInformation?> _modules;
+    private readonly Dictionary<string, ModuleInformation?> _modules;
 
-    private CompilerService(IDiagnosticService diagnosticService, List<SourceFile> sourceFiles)
+    private CompilerService(IDiagnosticService diagnosticService)
     {
         _diagnosticService = diagnosticService;
-        _sourceFiles = sourceFiles;
         _modules = new Dictionary<string, ModuleInformation?>();
     }
 
-    public Compilation Compile()
+    public Compilation Compile(IReadOnlyList<SourceFile> sourceFiles)
     {
+
         DiagnosticBag globalDiagnostics = _diagnosticService.CreateDiagnosticBag();
-        CollectModules(globalDiagnostics);
+        CollectModules(globalDiagnostics, sourceFiles);
 
         string? projectRoot = GetProjectRoot();
         if (projectRoot is null)
@@ -39,31 +37,31 @@ public class CompilerService
         return new Compilation(globalDiagnostics, modules);
     }
 
-    private void CollectModules(DiagnosticBag globalDiagnostics)
+    private void CollectModules(DiagnosticBag globalDiagnostics, IReadOnlyList<SourceFile> sourceFiles)
     {
-        foreach (SourceFile sourceFile in _sourceFiles)
+        foreach (SourceFile sourceFile in sourceFiles)
         {
-            CollectModule(globalDiagnostics, sourceFile);
+            CollectModule(globalDiagnostics, sourceFiles, sourceFile);
         }
     }
 
-    private ModuleInformation? CollectModule(DiagnosticBag globalDiagnostics, string filePath)
+    private ModuleInformation? CollectModule(DiagnosticBag globalDiagnostics, IReadOnlyList<SourceFile> sourceFiles, string filePath)
     {
         if (_modules.TryGetValue(filePath, out ModuleInformation? existingInformation))
         {
             return existingInformation;
         }
 
-        SourceFile? loadedSourceFile = _sourceFiles.FirstOrDefault(source => source.FilePath == filePath);
+        SourceFile? loadedSourceFile = sourceFiles.FirstOrDefault(source => source.FilePath == filePath);
         if (loadedSourceFile is null)
         {
             loadedSourceFile = SourceFile.Read(filePath);
         }
 
-        return CollectModule(globalDiagnostics, loadedSourceFile);
+        return CollectModule(globalDiagnostics, sourceFiles, loadedSourceFile);
     }
 
-    private ModuleInformation? CollectModule(DiagnosticBag globalDiagnostics, SourceFile sourceFile)
+    private ModuleInformation? CollectModule(DiagnosticBag globalDiagnostics, IReadOnlyList<SourceFile> sourceFiles, SourceFile sourceFile)
     {
         if (_modules.TryGetValue(sourceFile.FilePath, out ModuleInformation? existingInformation))
         {
@@ -94,7 +92,7 @@ public class CompilerService
 
         foreach (string dependency in ResolveDependencies(module))
         {
-            ModuleInformation? dependencyInformation = CollectModule(globalDiagnostics, dependency);
+            ModuleInformation? dependencyInformation = CollectModule(globalDiagnostics, sourceFiles, dependency);
             if (dependencyInformation is not null)
             {
                 dependencies.Add(dependencyInformation);
@@ -205,7 +203,19 @@ public class CompilerService
             throw new ArgumentException("At least one source file is required", nameof(entryPoints));
         }
 
-        CompilerService compiler = new CompilerService(diagnosticService, sourceFiles);
-        return compiler.Compile();
+        CompilerService compiler = new CompilerService(diagnosticService);
+        return compiler.Compile(sourceFiles);
+    }
+
+    public static IReadOnlyList<Token> Tokenize(IDiagnosticService diagnosticService, SourceFile sourceFile, out DiagnosticBag diagnostics)
+    {
+        diagnostics = diagnosticService.CreateDiagnosticBag();
+        return Lexer.TokenizeAll(diagnostics, sourceFile);
+    }
+
+    public static Module? ParseModule(IDiagnosticService diagnosticService, SourceFile sourceFile, out DiagnosticBag diagnostics)
+    {
+        CompilerService compiler = new CompilerService(diagnosticService);
+        return compiler.ParseSource(sourceFile, out diagnostics);
     }
 }

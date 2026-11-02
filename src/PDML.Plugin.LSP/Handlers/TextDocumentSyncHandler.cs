@@ -5,18 +5,30 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Document;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server.Capabilities;
+using PDML.Compiler;
+using PDML.Plugin.LSP.Diagnostics;
+using PDML.Plugin.LSP.Services;
 
 namespace PDML.Plugin.LSP.Handlers;
 
-public class DiagnosticsHandler : TextDocumentSyncHandlerBase
+public sealed class TextDocumentSyncHandler : TextDocumentSyncHandlerBase
 {
+    private readonly IWindowLanguageServer _logger;
     private readonly ILanguageServerFacade _server;
-    private readonly DocumentStore _documentStore;
+    private readonly DocumentStoreService _documentStoreService;
+    private readonly CompilationService _compilationService;
 
-    public DiagnosticsHandler(ILanguageServerFacade server, DocumentStore? documentStore = null)
+    public TextDocumentSyncHandler(
+        IWindowLanguageServer logger,
+        ILanguageServerFacade server,
+        DocumentStoreService documentStoreService,
+        CompilationService compilationService
+    )
     {
+        _logger = logger;
         _server = server;
-        _documentStore = documentStore ?? new DocumentStore();
+        _documentStoreService = documentStoreService;
+        _compilationService = compilationService;
     }
 
     public override TextDocumentAttributes GetTextDocumentAttributes(DocumentUri uri)
@@ -25,7 +37,7 @@ public class DiagnosticsHandler : TextDocumentSyncHandlerBase
     }
 
     protected override TextDocumentSyncRegistrationOptions CreateRegistrationOptions(
-        TextSynchronizationCapability capability, 
+        TextSynchronizationCapability capability,
         ClientCapabilities clientCapabilities)
     {
         return new TextDocumentSyncRegistrationOptions
@@ -37,43 +49,53 @@ public class DiagnosticsHandler : TextDocumentSyncHandlerBase
 
     public override Task<Unit> Handle(DidOpenTextDocumentParams request, CancellationToken cancellationToken)
     {
-        _documentStore.Update(request.TextDocument.Uri, request.TextDocument.Text);
-        Analyze(request.TextDocument.Uri, request.TextDocument.Text);
+        _documentStoreService.Update(request.TextDocument.Uri);
+        Handle(request.TextDocument.Uri);
+
         return Unit.Task;
     }
 
     public override Task<Unit> Handle(DidChangeTextDocumentParams request, CancellationToken cancellationToken)
     {
-        string text = request.ContentChanges.FirstOrDefault()?.Text ?? string.Empty;
-        _documentStore.Update(request.TextDocument.Uri, text);
-        Analyze(request.TextDocument.Uri, text);
+        TextDocumentContentChangeEvent[] changes = request.ContentChanges.ToArray();
+        if (changes.Length != 1)
+        {
+            return Unit.Task;
+        }
+
+        _documentStoreService.Update(request.TextDocument.Uri, changes[0].Text);
+        Handle(request.TextDocument.Uri);
+
         return Unit.Task;
     }
 
     public override Task<Unit> Handle(DidSaveTextDocumentParams request, CancellationToken cancellationToken)
     {
+        _documentStoreService.Update(request.TextDocument.Uri);
+        Handle(request.TextDocument.Uri);
+
         return Unit.Task;
     }
 
     public override Task<Unit> Handle(DidCloseTextDocumentParams request, CancellationToken cancellationToken)
     {
-        _documentStore.Remove(request.TextDocument.Uri);
-        _server.TextDocument.PublishDiagnostics(new PublishDiagnosticsParams
-        {
-            Uri = request.TextDocument.Uri,
-            Diagnostics = new Container<Diagnostic>()
-        });
         return Unit.Task;
     }
 
-    private void Analyze(DocumentUri uri, string text)
+    private void Handle(DocumentUri document)
     {
-        Diagnostic[] diagnostics = PdmlCompiler.Compile(uri, text);
+        _compilationService.NextCompilation();
+
+        Compilation compilation = _compilationService.Current;
+        LspDiagnosticBag diagnostics = (LspDiagnosticBag)compilation.Diagnostics;
 
         _server.TextDocument.PublishDiagnostics(new PublishDiagnosticsParams
         {
-            Uri = uri,
-            Diagnostics = new Container<Diagnostic>(diagnostics)
+            Diagnostics = new Container<Diagnostic>(
+                diagnostics.Where(diagnostic => diagnostic.Document == document)
+            ),
+            Uri = document,
         });
+
     }
 }

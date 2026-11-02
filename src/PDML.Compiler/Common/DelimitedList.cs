@@ -14,6 +14,8 @@ public sealed class DelimitedList<T> : IEnumerable<T>
 
     public int TotalCount => _entries.Count;
 
+    public IEnumerable<T> Entries => _entries;
+
     public void AddItem(T item)
     {
         if (!_expectsItem)
@@ -58,6 +60,26 @@ public sealed class DelimitedList<TItem, TDelimiter> : IEnumerable<TItem>
     public int Count { get; private set; }
 
     public int TotalCount => _entries.Count;
+
+    public IEnumerable<(TItem?, TDelimiter?)> Entries
+    {
+        get
+        {
+            for (int i = 0; i < _entries.Count; i++)
+            {
+                bool isEven = i % 2 == 0;
+
+                TItem? item = isEven
+                    ? (TItem?)_entries[i]
+                    : default;
+                TDelimiter? delimiter = !isEven
+                    ? (TDelimiter?)_entries[i]
+                    : default;
+
+                yield return (item, delimiter);
+            }
+        }
+    }
 
     public void AddItem(TItem item)
     {

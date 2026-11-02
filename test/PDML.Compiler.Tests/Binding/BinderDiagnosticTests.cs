@@ -1,5 +1,4 @@
 using PDML.Compiler.Binding;
-using PDML.Compiler.Binding.Nodes;
 using PDML.Compiler.Common;
 using PDML.Compiler.Diagnostics;
 using PDML.Compiler.Diagnostics.Abstractions;

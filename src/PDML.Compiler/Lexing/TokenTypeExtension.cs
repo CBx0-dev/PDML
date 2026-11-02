@@ -38,4 +38,18 @@ public static class TokenTypeExtension
                 throw new ArgumentOutOfRangeException(nameof(type), type, null);
         }
     }
+
+    public static bool IsKeyword(this TokenType type)
+    {
+        switch (type)
+        {
+            case TokenType.TypeKeyword:
+            case TokenType.VirtualKeyword:
+            case TokenType.ImportKeyword:
+            case TokenType.FromKeyword:
+                return true;
+            default:
+                return false;
+        }
+    }
 }

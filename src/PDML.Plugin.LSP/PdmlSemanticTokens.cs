@@ -42,7 +42,7 @@ internal static class PdmlSemanticTokens
         // 1. Lexer tokens: keywords and operators
         foreach (Token tok in tokens)
         {
-            if (tok.Type is TokenType.TypeKeyword or TokenType.VirtualKeyword)
+            if (tok.Type.IsKeyword())
             {
                 AddToken(result, tok, SemanticTokenType.Keyword);
             }
@@ -55,6 +55,14 @@ internal static class PdmlSemanticTokens
         // 2. AST tokens: type definitions, inheritance, compositions, bodies, properties, and type signatures
         Parser parser = new Parser(diagnostics, tokens);
         Module module = parser.ParseModule();
+
+        foreach (ImportMember import in module.Imports)
+        {
+            foreach (Token symbol in import.Symbols)
+            {
+                AddToken(result, symbol, SemanticTokenType.Type, SemanticTokenModifier.Declaration);
+            }
+        }
 
         foreach (VirtualTypeDefinitionMember def in module.VirtualTypeDefinitions)
         {

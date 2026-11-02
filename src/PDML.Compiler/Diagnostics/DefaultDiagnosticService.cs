@@ -1,4 +1,6 @@
-﻿namespace PDML.Compiler.Diagnostics;
+﻿using PDML.Compiler.Diagnostics.Abstractions;
+
+namespace PDML.Compiler.Diagnostics;
 
 public sealed class DefaultDiagnosticService : IDiagnosticService
 {

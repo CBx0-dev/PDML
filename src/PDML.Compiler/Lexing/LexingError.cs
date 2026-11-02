@@ -1,4 +1,5 @@
 using PDML.Compiler.Diagnostics;
+using PDML.Compiler.Diagnostics.Abstractions;
 
 namespace PDML.Compiler.Lexing;
 

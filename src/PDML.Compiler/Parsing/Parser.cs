@@ -1,5 +1,6 @@
 using PDML.Compiler.Common;
 using PDML.Compiler.Diagnostics;
+using PDML.Compiler.Diagnostics.Abstractions;
 using PDML.Compiler.Lexing;
 using PDML.Compiler.Parsing.Nodes;
 using PDML.Compiler.Parsing.Nodes.Members;

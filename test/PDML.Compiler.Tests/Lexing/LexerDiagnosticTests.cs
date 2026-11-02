@@ -1,5 +1,6 @@
 using PDML.Compiler.Common;
 using PDML.Compiler.Diagnostics;
+using PDML.Compiler.Diagnostics.Abstractions;
 using PDML.Compiler.Lexing;
 
 namespace PDML.Compiler.Tests.Lexing;

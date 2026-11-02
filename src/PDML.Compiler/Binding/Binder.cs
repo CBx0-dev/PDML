@@ -7,6 +7,7 @@ using PDML.Compiler.Lexing;
 using PDML.Compiler.Parsing.Nodes;
 using PDML.Compiler.Parsing.Nodes.Members;
 using System.Xml.Linq;
+using PDML.Compiler.Diagnostics.Abstractions;
 
 namespace PDML.Compiler.Binding;
 

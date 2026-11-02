@@ -8,6 +8,7 @@ using PDML.Compiler.Parsing;
 using PDML.Compiler.Parsing.Nodes;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using PDML.Compiler.Diagnostics.Abstractions;
 using LspDiagnostic = OmniSharp.Extensions.LanguageServer.Protocol.Models.Diagnostic;
 
 namespace PDML.Plugin.LSP;

@@ -4,6 +4,7 @@ using PDML.Compiler.Binding.Nodes.Members;
 using PDML.Compiler.Binding.Types;
 using PDML.Compiler.Common;
 using PDML.Compiler.Diagnostics;
+using PDML.Compiler.Diagnostics.Abstractions;
 using PDML.Compiler.Lexing;
 using PDML.Compiler.Parsing;
 using PDML.Compiler.Parsing.Nodes;

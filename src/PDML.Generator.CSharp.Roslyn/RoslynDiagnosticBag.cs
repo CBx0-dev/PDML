@@ -1,6 +1,6 @@
 ﻿using Microsoft.CodeAnalysis.Text;
 using PDML.Compiler.Common;
-using PDML.Compiler.Diagnostics;
+using PDML.Compiler.Diagnostics.Abstractions;
 
 namespace PDML.Generator.CSharp.Roslyn;
 
@@ -29,7 +29,7 @@ internal sealed class RoslynDiagnosticBag : DiagnosticBag<Microsoft.CodeAnalysis
         };
 
         Microsoft.CodeAnalysis.Location roslynLocation = MapLocation(location);
-        Microsoft.CodeAnalysis.Location[] roslynAdditonalLocation = additionalLocations
+        Microsoft.CodeAnalysis.Location[] roslynAdditionalLocation = additionalLocations
             .Select(MapLocation)
             .ToArray();
 
@@ -45,7 +45,7 @@ internal sealed class RoslynDiagnosticBag : DiagnosticBag<Microsoft.CodeAnalysis
         _diagnostics.Add(Microsoft.CodeAnalysis.Diagnostic.Create(
             descriptor: roslynDescriptor,
             location: roslynLocation,
-            additionalLocations: roslynAdditonalLocation,
+            additionalLocations: roslynAdditionalLocation,
             messageArgs: [string.Format(descriptor.MessageFormat, args)]
         ));
     }

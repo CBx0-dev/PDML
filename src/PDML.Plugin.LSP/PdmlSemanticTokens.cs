@@ -6,6 +6,7 @@ using PDML.Compiler.Parsing;
 using PDML.Compiler.Parsing.Nodes;
 using PDML.Compiler.Parsing.Nodes.Members;
 using System.IO;
+using PDML.Compiler.Diagnostics.Abstractions;
 
 namespace PDML.Plugin.LSP;
 

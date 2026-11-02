@@ -1,4 +1,4 @@
-﻿namespace PDML.Compiler.Diagnostics;
+﻿namespace PDML.Compiler.Diagnostics.Abstractions;
 
 public interface IDiagnosticService
 {

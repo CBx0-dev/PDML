@@ -2,6 +2,7 @@ using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using PDML.Compiler.Common;
 using PDML.Compiler.Diagnostics;
+using DiagnosticSeverity = PDML.Compiler.Diagnostics.Abstractions.DiagnosticSeverity;
 using LspDiagnostic = OmniSharp.Extensions.LanguageServer.Protocol.Models.Diagnostic;
 using LspDiagnosticSeverity = OmniSharp.Extensions.LanguageServer.Protocol.Models.DiagnosticSeverity;
 using LspLocation = OmniSharp.Extensions.LanguageServer.Protocol.Models.Location;
@@ -27,9 +28,9 @@ internal static class DiagnosticBagExtension
     {
         LspDiagnosticSeverity severity = diag.Descriptor.Severity switch
         {
-            PDML.Compiler.Diagnostics.DiagnosticSeverity.Info => LspDiagnosticSeverity.Information,
-            PDML.Compiler.Diagnostics.DiagnosticSeverity.Warning => LspDiagnosticSeverity.Warning,
-            PDML.Compiler.Diagnostics.DiagnosticSeverity.Error => LspDiagnosticSeverity.Error,
+            DiagnosticSeverity.Info => LspDiagnosticSeverity.Information,
+            DiagnosticSeverity.Warning => LspDiagnosticSeverity.Warning,
+            DiagnosticSeverity.Error => LspDiagnosticSeverity.Error,
             _ => LspDiagnosticSeverity.Error
         };
 

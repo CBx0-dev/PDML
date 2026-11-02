@@ -1,7 +1,7 @@
 using System.Collections;
 using PDML.Compiler.Common;
 
-namespace PDML.Compiler.Diagnostics;
+namespace PDML.Compiler.Diagnostics.Abstractions;
 
 public abstract class DiagnosticBag
 {

@@ -11,7 +11,7 @@ namespace PDML.Plugin.LSP;
 
 internal static class DiagnosticBagExtension
 {
-    public static LspDiagnostic[] ToLspDiagnostics(this DiagnosticBag diagnostics, DocumentUri? uri = null)
+    public static LspDiagnostic[] ToLspDiagnostics(this DefaultDiagnosticBag diagnostics, DocumentUri? uri = null)
     {
         List<LspDiagnostic> lspDiagnostics = new List<LspDiagnostic>();
 

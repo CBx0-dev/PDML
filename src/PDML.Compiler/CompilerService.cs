@@ -11,40 +11,42 @@ namespace PDML.Compiler;
 
 public class CompilerService
 {
+    private readonly IDiagnosticService _diagnosticService;
     private readonly List<SourceFile> _sourceFiles;
-    private readonly DiagnosticBag _diagnostics;
     private Dictionary<string, ModuleInformation?> _modules;
 
-    private CompilerService(List<SourceFile> sourceFiles)
+    private CompilerService(IDiagnosticService diagnosticService, List<SourceFile> sourceFiles)
     {
+        _diagnosticService = diagnosticService;
         _sourceFiles = sourceFiles;
-        _diagnostics = new DiagnosticBag();
         _modules = new Dictionary<string, ModuleInformation?>();
     }
 
     public Compilation Compile()
     {
-        CollectModules();
+        DiagnosticBag globalDiagnostics = _diagnosticService.CreateDiagnosticBag();
+        CollectModules(globalDiagnostics);
+
         string? projectRoot = GetProjectRoot();
         if (projectRoot is null)
         {
             throw new InvalidOperationException("Could not extract project root out of source files");
         }
 
-        IReadOnlyList<BoundModule>? modules = BindModules(projectRoot);
+        IReadOnlyList<BoundModule>? modules = BindModules(globalDiagnostics, projectRoot);
 
-        return new Compilation(_diagnostics, modules);
+        return new Compilation(globalDiagnostics, modules);
     }
 
-    private void CollectModules()
+    private void CollectModules(DiagnosticBag globalDiagnostics)
     {
         foreach (SourceFile sourceFile in _sourceFiles)
         {
-            CollectModule(sourceFile);
+            CollectModule(globalDiagnostics, sourceFile);
         }
     }
 
-    private ModuleInformation? CollectModule(string filePath)
+    private ModuleInformation? CollectModule(DiagnosticBag globalDiagnostics, string filePath)
     {
         if (_modules.TryGetValue(filePath, out ModuleInformation? existingInformation))
         {
@@ -57,10 +59,10 @@ public class CompilerService
             loadedSourceFile = SourceFile.Read(filePath);
         }
 
-        return CollectModule(loadedSourceFile);
+        return CollectModule(globalDiagnostics, loadedSourceFile);
     }
 
-    private ModuleInformation? CollectModule(SourceFile sourceFile)
+    private ModuleInformation? CollectModule(DiagnosticBag globalDiagnostics, SourceFile sourceFile)
     {
         if (_modules.TryGetValue(sourceFile.FilePath, out ModuleInformation? existingInformation))
         {
@@ -69,7 +71,8 @@ public class CompilerService
             return existingInformation;
         }
 
-        Module? module = ParseSource(sourceFile);
+        Module? module = ParseSource(sourceFile, out DiagnosticBag diagnostics);
+        globalDiagnostics.Consume(diagnostics);
 
         if (module is null)
         {
@@ -90,7 +93,7 @@ public class CompilerService
 
         foreach (string dependency in ResolveDependencies(module))
         {
-            ModuleInformation? dependencyInformation = CollectModule(dependency);
+            ModuleInformation? dependencyInformation = CollectModule(globalDiagnostics, dependency);
             if (dependencyInformation is not null)
             {
                 dependencies.Add(dependencyInformation);
@@ -100,22 +103,19 @@ public class CompilerService
         return information;
     }
 
-    private Module? ParseSource(SourceFile sourceFile)
+    private Module? ParseSource(SourceFile sourceFile, out DiagnosticBag diagnostics)
     {
-        DiagnosticBag diagnostics = new DiagnosticBag();
+        diagnostics = _diagnosticService.CreateDiagnosticBag();
 
         List<Token> tokens = Lexer.TokenizeAll(diagnostics, sourceFile);
         if (diagnostics.HasErrors)
         {
-            _diagnostics.Consume(diagnostics);
             return null;
         }
 
         Parser parser = new Parser(diagnostics, tokens);
 
         Module module = parser.ParseModule();
-        _diagnostics.Consume(diagnostics);
-
         if (diagnostics.HasErrors)
         {
             return null;
@@ -148,7 +148,7 @@ public class CompilerService
         if (common is null)
         {
             return null;
-        } 
+        }
 
         foreach (string path in paths.Skip(1))
         {
@@ -165,9 +165,9 @@ public class CompilerService
         return common;
     }
 
-    private IReadOnlyList<BoundModule>? BindModules(string projectRoot)
+    private IReadOnlyList<BoundModule>? BindModules(DiagnosticBag diagnostics, string projectRoot)
     {
-        if (_diagnostics.HasErrors)
+        if (diagnostics.HasErrors)
         {
             return null;
         }
@@ -189,14 +189,14 @@ public class CompilerService
                 .Select(dependency => modules[dependency.Module])
                 .ToArray();
 
-            BoundModule module = Binder.BindModule(projectRoot, _diagnostics, information.Module, dependencies);
+            BoundModule module = Binder.BindModule(projectRoot, diagnostics, information.Module, dependencies);
             modules.Add(information.Module, module);
         }
 
         return modules.Values.ToList();
     }
 
-    public static Compilation CompileEntryPoints(IEnumerable<SourceFile> entryPoints)
+    public static Compilation CompileEntryPoints(IDiagnosticService diagnosticService, IEnumerable<SourceFile> entryPoints)
     {
         List<SourceFile> sourceFiles = entryPoints.ToList();
         if (sourceFiles.Count == 0)
@@ -204,9 +204,7 @@ public class CompilerService
             throw new ArgumentException("At least one source file is required", nameof(entryPoints));
         }
 
-        CompilerService compiler = new CompilerService(sourceFiles);
-
-
+        CompilerService compiler = new CompilerService(diagnosticService, sourceFiles);
         return compiler.Compile();
     }
 }

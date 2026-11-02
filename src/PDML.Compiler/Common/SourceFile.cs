@@ -33,4 +33,17 @@ public sealed record SourceFile
         FileName = fileName,
         Content = content
     };
+
+    public static SourceFile Create(string filePath, string content)
+    {
+        string directory = Path.GetDirectoryName(Path.GetFullPath(filePath)) ?? ".";
+        string fileName = Path.GetFileName(filePath);
+
+        return new SourceFile
+        {
+            Directory = directory,
+            FileName = fileName,
+            Content = content
+        };
+    }
 }

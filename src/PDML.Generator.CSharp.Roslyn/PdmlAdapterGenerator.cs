@@ -1,6 +1,11 @@
-﻿using System.Text;
+﻿using System.Collections.Immutable;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
+using PDML.Compiler;
+using PDML.Compiler.Binding.Nodes;
+using PDML.Compiler.Common;
+using PdmlCompilation = PDML.Compiler.Compilation;
 
 namespace PDML.Generator.CSharp.Roslyn;
 
@@ -35,40 +40,51 @@ public sealed class PdmlAdapterGenerator : IIncrementalGenerator
                 };
             });
 
+        IncrementalValueProvider<ImmutableArray<InputFile>> projectFiles = inputs.Collect();
+
         context.RegisterSourceOutput(
-            inputs,
-            static (productionContext, input) =>
+            projectFiles,
+            static (productionContext, files) =>
             {
-                if (input.Content is null)
+                InputFile[] validFiles = files
+                    .Where(static file => file.Content is not null)
+                    .ToArray();
+
+                if (validFiles.Length == 0)
                 {
                     return;
                 }
 
-                if (PdmlCompiler.Compile(
-                    input.Path,
-                    input.Content,
-                    input.Namespace,
-                    out string? csharpCode,
-                    out Diagnostic[]? diagnostics)
-                )
+                PdmlCompilation compilation = CompilerService.CompileEntryPoints(
+                    new RoslynDiagnosticService(),
+                    validFiles.Select(file => SourceFile.Create(file.Path, file.Content!))
+                );
+
+                foreach (Diagnostic diagnostic in (RoslynDiagnosticBag)compilation.Diagnostics)
                 {
-                    string hintName = Path.GetFileNameWithoutExtension(input.Path) + ".g.cs";
+                    productionContext.ReportDiagnostic(diagnostic);   
+                }
+
+                CSharpGenerator generator = new CSharpGenerator();
+                CSharpGeneratorSettings settings = new CSharpGeneratorSettings
+                {
+                    RootNamespace = files[0].Namespace
+                };
+
+                StringWriter writer = new StringWriter();
+                foreach (BoundModule module in compilation.Modules)
+                {
+                    writer.GetStringBuilder().Clear();
+                    generator.GenerateModule(writer, settings, module);
+
+                    string hintName = module.Identity.ToString() + ".g.cs";
 
                     productionContext.AddSource(
                         hintName,
-                        SourceText.From(csharpCode, Encoding.UTF8)
+                        SourceText.From(writer.ToString(), Encoding.UTF8)
                     );
-
-                    return;
-                }
-
-                foreach (Diagnostic diagnostic in diagnostics)
-                {
-                    productionContext.ReportDiagnostic(diagnostic);
                 }
             }
         );
-
-
     }
 }

@@ -11,7 +11,7 @@ public sealed class ParserTests
 {
     private static (Module Module, DiagnosticBag Diagnostics) Parse(string content)
     {
-        DiagnosticBag diagnostics = new DiagnosticBag();
+        DiagnosticBag diagnostics = new DefaultDiagnosticBag();
         SourceFile sourceFile = SourceFile.Create(".", "test.pdml", content);
         Lexer lexer = new Lexer(diagnostics, sourceFile);
         List<Token> tokens = Lexer.TokenizeAll(diagnostics, sourceFile);

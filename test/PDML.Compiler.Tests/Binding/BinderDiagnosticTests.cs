@@ -10,15 +10,15 @@ namespace PDML.Compiler.Tests.Binding;
 
 public sealed class BinderDiagnosticTests
 {
-    private static DiagnosticBag Bind(string content)
+    private static DefaultDiagnosticBag Bind(string content)
     {
-        DiagnosticBag diagnostics = new DiagnosticBag();
+        DefaultDiagnosticBag diagnostics = new DefaultDiagnosticBag();
         SourceFile sourceFile = SourceFile.Create(".", "test.pdml", content);
         List<Token> tokens = Lexer.TokenizeAll(diagnostics, sourceFile);
 
         Parser parser = new Parser(diagnostics, tokens);
         Module module = parser.ParseModule();
-        Binder.BindModule(diagnostics, module);
+        Binder.BindModule(".", diagnostics, module, []);
         return diagnostics;
     }
 
@@ -29,7 +29,7 @@ public sealed class BinderDiagnosticTests
                               type User = { id: int64; };
                               type User = { name: string; };
                               """;
-        DiagnosticBag diagnostics = Bind(source);
+        DefaultDiagnosticBag diagnostics = Bind(source);
 
         Assert.True(diagnostics.HasErrors);
         Diagnostic diag = Assert.Single(diagnostics, d => d.Descriptor.Code == (int)BindingError.Code.DuplicateName);
@@ -47,7 +47,7 @@ public sealed class BinderDiagnosticTests
                               type Base = {};
                               type Derived : Base<string> = {};
                               """;
-        DiagnosticBag diagnostics = Bind(source);
+        DefaultDiagnosticBag diagnostics = Bind(source);
 
         Assert.True(diagnostics.HasErrors);
         Diagnostic diag = Assert.Single(diagnostics, d => d.Descriptor.Code == (int)BindingError.Code.FunctionNotAllowed);
@@ -60,7 +60,7 @@ public sealed class BinderDiagnosticTests
     public void BindModule_WhenUnknownTypeInPropertyClause_ReportsUnknownTypeDiagnostic()
     {
         const string source = "type User = { role: NonExistentType; };";
-        DiagnosticBag diagnostics = Bind(source);
+        DefaultDiagnosticBag diagnostics = Bind(source);
 
         Assert.True(diagnostics.HasErrors);
         Diagnostic diag = Assert.Single(diagnostics, d => d.Descriptor.Code == (int)BindingError.Code.UnknownType);
@@ -72,7 +72,7 @@ public sealed class BinderDiagnosticTests
     public void BindModule_WhenUnknownTypeInInheritance_ReportsUnknownTypeDiagnostic()
     {
         const string source = "type Dog : UnknownAnimal = {};";
-        DiagnosticBag diagnostics = Bind(source);
+        DefaultDiagnosticBag diagnostics = Bind(source);
 
         Assert.True(diagnostics.HasErrors);
         Diagnostic diag = Assert.Single(diagnostics, d => d.Descriptor.Code == (int)BindingError.Code.UnknownType);
@@ -84,7 +84,7 @@ public sealed class BinderDiagnosticTests
     public void BindModule_WhenUnknownTypeInComposition_ReportsUnknownTypeDiagnostic()
     {
         const string source = "type Entity = UnknownMixin & { id: int64; };";
-        DiagnosticBag diagnostics = Bind(source);
+        DefaultDiagnosticBag diagnostics = Bind(source);
 
         Assert.True(diagnostics.HasErrors);
         Diagnostic diag = Assert.Single(diagnostics, d => d.Descriptor.Code == (int)BindingError.Code.UnknownType);
@@ -96,7 +96,7 @@ public sealed class BinderDiagnosticTests
     public void BindModule_WhenIntrinsicTypeInInheritance_ReportsIntrinsicTypeNotAllowedDiagnostic()
     {
         const string source = "type SpecialInt : int32 = {};";
-        DiagnosticBag diagnostics = Bind(source);
+        DefaultDiagnosticBag diagnostics = Bind(source);
 
         Assert.True(diagnostics.HasErrors);
         Diagnostic diag = Assert.Single(diagnostics, d => d.Descriptor.Code == (int)BindingError.Code.IntrinsicTypeNotAllowed);
@@ -108,7 +108,7 @@ public sealed class BinderDiagnosticTests
     public void BindModule_WhenIntrinsicTypeInComposition_ReportsIntrinsicTypeNotAllowedDiagnostic()
     {
         const string source = "type Combined = int32 & { id: int64; };";
-        DiagnosticBag diagnostics = Bind(source);
+        DefaultDiagnosticBag diagnostics = Bind(source);
 
         Assert.True(diagnostics.HasErrors);
         Diagnostic diag = Assert.Single(diagnostics, d => d.Descriptor.Code == (int)BindingError.Code.IntrinsicTypeNotAllowed);
@@ -120,7 +120,7 @@ public sealed class BinderDiagnosticTests
     public void BindModule_WhenSelfCircularInheritance_ReportsCircularInheritanceDiagnostic()
     {
         const string source = "type SelfLoop : SelfLoop = {};";
-        DiagnosticBag diagnostics = Bind(source);
+        DefaultDiagnosticBag diagnostics = Bind(source);
 
         Assert.True(diagnostics.HasErrors);
         Diagnostic diag = Assert.Single(diagnostics, d => d.Descriptor.Code == (int)BindingError.Code.CircularInheritance);
@@ -136,7 +136,7 @@ public sealed class BinderDiagnosticTests
                               type A : B = {};
                               type B : A = {};
                               """;
-        DiagnosticBag diagnostics = Bind(source);
+        DefaultDiagnosticBag diagnostics = Bind(source);
 
         Assert.True(diagnostics.HasErrors);
         Diagnostic diag = Assert.Single(diagnostics, d => d.Descriptor.Code == (int)BindingError.Code.CircularInheritance);
@@ -153,7 +153,7 @@ public sealed class BinderDiagnosticTests
                               type B : C = {};
                               type C : A = {};
                               """;
-        DiagnosticBag diagnostics = Bind(source);
+        DefaultDiagnosticBag diagnostics = Bind(source);
 
         Assert.True(diagnostics.HasErrors);
         Diagnostic diag = Assert.Single(diagnostics, d => d.Descriptor.Code == (int)BindingError.Code.CircularInheritance);
@@ -171,7 +171,7 @@ public sealed class BinderDiagnosticTests
                                   id: int64;
                               };
                               """;
-        DiagnosticBag diagnostics = Bind(source);
+        DefaultDiagnosticBag diagnostics = Bind(source);
 
         Assert.True(diagnostics.HasErrors);
         Diagnostic diag = Assert.Single(diagnostics, d => d.Descriptor.Code == (int)BindingError.Code.DuplicateProperty);
@@ -186,7 +186,7 @@ public sealed class BinderDiagnosticTests
     public void BindModule_WhenDuplicatePropertyAcrossMultipleBodies_ReportsDuplicatePropertyDiagnostic()
     {
         const string source = "type User = { id: int32; } & { id: int64; };";
-        DiagnosticBag diagnostics = Bind(source);
+        DefaultDiagnosticBag diagnostics = Bind(source);
 
         Assert.True(diagnostics.HasErrors);
         Diagnostic diag = Assert.Single(diagnostics, d => d.Descriptor.Code == (int)BindingError.Code.DuplicateProperty);
@@ -202,7 +202,7 @@ public sealed class BinderDiagnosticTests
                               type Base = { id: int64; };
                               type Derived = { id: string; } & Base;
                               """;
-        DiagnosticBag diagnostics = Bind(source);
+        DefaultDiagnosticBag diagnostics = Bind(source);
 
         Assert.True(diagnostics.HasErrors);
         Diagnostic diag = Assert.Single(diagnostics, d => d.Descriptor.Code == (int)BindingError.Code.DuplicatePropertyComposition);
@@ -218,7 +218,7 @@ public sealed class BinderDiagnosticTests
                               type A = { x: UnknownType1; };
                               type B = { y: UnknownType2; };
                               """;
-        DiagnosticBag diagnostics = Bind(source);
+        DefaultDiagnosticBag diagnostics = Bind(source);
 
         Assert.True(diagnostics.HasErrors);
         Assert.Equal(2, diagnostics.Count(d => d.Descriptor.Code == (int)BindingError.Code.UnknownType));
@@ -232,7 +232,7 @@ public sealed class BinderDiagnosticTests
                               type A = { x: int32; };
                               type A : NonExistent = { y: int32; };
                               """;
-        DiagnosticBag diagnostics = Bind(source);
+        DefaultDiagnosticBag diagnostics = Bind(source);
 
         Assert.True(diagnostics.HasErrors);
         // Only duplicate name error is reported; unknown type for inheritance is not evaluated

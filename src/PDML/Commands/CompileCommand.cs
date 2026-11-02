@@ -2,6 +2,7 @@ using GlobExpressions;
 using PDML.Compiler;
 using PDML.Compiler.Binding.Nodes;
 using PDML.Compiler.Common;
+using PDML.Compiler.Diagnostics;
 using PDML.Generator.Abstractions;
 using Spectre.Console.Cli;
 
@@ -15,11 +16,14 @@ internal sealed class CompileCommand : AsyncCommand<CompileSettings>
         GeneratorSettings generatorSettings = GeneratorSettingsMapper.Map(settings.Properties, generator.SettingsType);
 
         SourceFile[] sourceFiles = ReadFiles(settings.Paths);
-        Compilation compilation = CompilerService.CompileEntryPoints(sourceFiles);
+        Compilation compilation = CompilerService.CompileEntryPoints(
+            new DefaultDiagnosticService(),
+            sourceFiles
+        );
 
         if (compilation.Diagnostics.HasItems)
         {
-            DiagnosticPrinter.Print(compilation.Diagnostics);
+            DiagnosticPrinter.Print((DefaultDiagnosticBag)compilation.Diagnostics);
         }
 
         if (compilation.HasErrors)

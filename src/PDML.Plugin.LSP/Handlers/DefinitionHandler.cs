@@ -64,15 +64,15 @@ public class DefinitionHandler : DefinitionHandlerBase
         }
 
         SourceFile sourceFile = SourceFile.Create(fileDirectory, fileName, content);
-        DiagnosticBag diagnostics = new DiagnosticBag();
+        DiagnosticBag diagnostics = new DefaultDiagnosticBag();
 
         List<Token> tokens = Lexer.TokenizeAll(diagnostics, sourceFile);
 
         Parser parser = new Parser(diagnostics, tokens);
         Module module = parser.ParseModule();
 
-        DiagnosticBag bindingDiagnostics = new DiagnosticBag();
-        BoundModule boundModule = Binder.BindModule(bindingDiagnostics, module);
+        DiagnosticBag bindingDiagnostics = new DefaultDiagnosticBag();
+        BoundModule boundModule = Binder.BindModule(".", bindingDiagnostics, module, []);
 
         int targetLine = position.Line + 1;
         int targetCol = position.Character + 1;

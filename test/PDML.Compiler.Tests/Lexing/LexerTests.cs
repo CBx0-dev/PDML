@@ -6,9 +6,9 @@ namespace PDML.Compiler.Tests.Lexing;
 
 public sealed class LexerTests
 {
-    private static (Lexer Lexer, DiagnosticBag Diagnostics) CreateLexer(string content)
+    private static (Lexer Lexer, DefaultDiagnosticBag Diagnostics) CreateLexer(string content)
     {
-        DiagnosticBag diagnostics = new DiagnosticBag();
+        DefaultDiagnosticBag diagnostics = new DefaultDiagnosticBag();
         SourceFile sourceFile = SourceFile.Create(".", "test.pdml", content);
         Lexer lexer = new Lexer(diagnostics, sourceFile);
         return (lexer, diagnostics);

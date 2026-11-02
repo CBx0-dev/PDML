@@ -36,7 +36,7 @@ internal static class PdmlSemanticTokens
         }
 
         SourceFile sourceFile = SourceFile.Create(fileDirectory, fileName, content);
-        DiagnosticBag diagnostics = new DiagnosticBag();
+        DiagnosticBag diagnostics = new DefaultDiagnosticBag();
         List<Token> tokens = Lexer.TokenizeAll(diagnostics, sourceFile);
 
         // 1. Lexer tokens: keywords and operators

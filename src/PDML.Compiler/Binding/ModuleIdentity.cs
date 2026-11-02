@@ -64,4 +64,6 @@ public class ModuleIdentity
 
         return new ModuleIdentity(filePath, parts);
     }
+
+    public override string ToString() => string.Join(".", Segments);
 }

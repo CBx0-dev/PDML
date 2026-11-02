@@ -56,7 +56,7 @@ internal static class PdmlCompiler
         out LspDiagnostic[] lspDiagnostics
     )
     {
-        DiagnosticBag diagnostics = new DiagnosticBag();
+        DiagnosticBag diagnostics = new DefaultDiagnosticBag();
 
         string fileDirectory = Path.GetDirectoryName(file) ?? ".";
         string fileName = Path.GetFileName(file);
@@ -72,7 +72,7 @@ internal static class PdmlCompiler
         if (diagnostics.HasErrors)
         {
             boundModule = null;
-            lspDiagnostics = diagnostics.ToLspDiagnostics(uri);
+            lspDiagnostics = ((DefaultDiagnosticBag)diagnostics).ToLspDiagnostics(uri);
             return false;
         }
 
@@ -81,12 +81,12 @@ internal static class PdmlCompiler
         if (diagnostics.HasErrors)
         {
             boundModule = null;
-            lspDiagnostics = diagnostics.ToLspDiagnostics(uri);
+            lspDiagnostics = ((DefaultDiagnosticBag)diagnostics).ToLspDiagnostics(uri);
             return false;
         }
 
-        boundModule = Binder.BindModule(diagnostics, module);
-        lspDiagnostics = diagnostics.ToLspDiagnostics(uri);
+        boundModule = Binder.BindModule(".", diagnostics, module, []);
+        lspDiagnostics = ((DefaultDiagnosticBag)diagnostics).ToLspDiagnostics(uri);
         return !diagnostics.HasErrors;
     }
 }

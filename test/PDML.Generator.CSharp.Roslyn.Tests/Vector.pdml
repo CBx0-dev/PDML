@@ -13,5 +13,5 @@ type Vector3i = Vector2i & {
 };
 
 type FooBar : Foo = {
-	fooBar: int32;
+	f: int32;
 };

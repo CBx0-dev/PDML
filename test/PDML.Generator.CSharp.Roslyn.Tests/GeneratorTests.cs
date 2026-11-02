@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
+using PDML.Generator.CSharp.Roslyn.Tests.Vector;
 
 namespace PDML.Generator.CSharp.Roslyn.Tests;
 

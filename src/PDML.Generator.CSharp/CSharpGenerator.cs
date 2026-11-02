@@ -13,8 +13,28 @@ public sealed class CSharpGenerator : CodeGenerator<CSharpGeneratorSettings>
 
     public override void GenerateModule(TextWriter writer, CSharpGeneratorSettings settings, BoundModule module)
     {
+        foreach (BoundModule dependency in module.Dependencies)
+        {
+            writer.Write("using ");
+            writer.Write(settings.RootNamespace);
+            foreach (string segment in dependency.Identity.Segments)
+            {
+                writer.Write('.');
+                writer.Write(ConvertToPascalCase(segment));
+            }
+
+            writer.WriteLine(';');
+        }
+
+        writer.WriteLine();
+
         writer.Write("namespace ");
         writer.Write(settings.RootNamespace);
+        foreach (string segment in module.Identity.Segments)
+        {
+            writer.Write('.');
+            writer.Write(ConvertToPascalCase(segment));
+        }
         writer.WriteLine(';');
         writer.WriteLine();
 

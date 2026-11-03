@@ -55,6 +55,11 @@ public class CompilerService
         SourceFile? loadedSourceFile = sourceFiles.FirstOrDefault(source => source.FilePath == filePath);
         if (loadedSourceFile is null)
         {
+            if (!File.Exists(filePath))
+            {
+                return null;
+            }
+
             loadedSourceFile = SourceFile.Read(filePath);
         }
 
@@ -90,7 +95,7 @@ public class CompilerService
         };
         _modules.Add(sourceFile.FilePath, information);
 
-        foreach (string dependency in ResolveDependencies(module))
+        foreach (string dependency in ResolveDependencies(globalDiagnostics, module))
         {
             ModuleInformation? dependencyInformation = CollectModule(globalDiagnostics, sourceFiles, dependency);
             if (dependencyInformation is not null)
@@ -123,12 +128,24 @@ public class CompilerService
         return module;
     }
 
-    private IEnumerable<string> ResolveDependencies(Module module)
+    private IEnumerable<string> ResolveDependencies(DiagnosticBag globalDiagnostics, Module module)
     {
         foreach (ImportMember member in module.Imports)
         {
             string relativePath = TokenUtils.NormalizeString(member.Locator);
             string fullPath = Path.GetFullPath(Path.Combine(module.Location.SourceFile.Directory, relativePath) + ".pdml");
+
+            if (!File.Exists(fullPath))
+            {
+                globalDiagnostics.Report(
+                    ParsingError.FileNotFound,
+                    member.Locator.Location,
+                    relativePath,
+                    module.Location.SourceFile.FilePath
+                );
+
+                continue;
+            }
 
             yield return fullPath;
         }

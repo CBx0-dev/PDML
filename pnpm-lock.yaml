@@ -32,25 +32,6 @@ importers:
         specifier: ^7.0.2
         version: 7.0.2
 
-  src/PDML.Plugin.VSCode/tmp/extension:
-    dependencies:
-      vscode-languageclient:
-        specifier: ^11.0.0
-        version: 11.0.0
-    devDependencies:
-      '@types/node':
-        specifier: ^26.6.5
-        version: 26.6.5
-      '@types/vscode':
-        specifier: ^1.140.0
-        version: 1.140.0
-      '@vscode/vsce':
-        specifier: ^4.0.0
-        version: 4.0.0
-      typescript:
-        specifier: ^7.0.2
-        version: 7.0.2
-
 packages:
 
   '@azure/abort-controller@2.2.0':

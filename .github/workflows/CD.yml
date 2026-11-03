@@ -6,10 +6,10 @@ on:
       type:
         description: "release = NuGet packages, LSP, compiler CLI. vscode = extension only (own version)"
           type: choice
+          required: true
           options:
             - release
             - vscode
-          required: true
       version:
         description: "Version to use for the package (e.g 1.2.3)"
         type: string
@@ -206,61 +206,61 @@ jobs:
             --latest
             --draft
 
-vscode:
-  if: ${{ inputs.type == 'vscode' }}
-  runs-on: ubuntu-latest
-  permissions:
-    contents: write
-  env:
-    GH_TOKEN: ${{ github.token }}
-    VCSE_PAT: ${{ secrets.VCSE_PAT }}
+  vscode:
+    if: ${{ inputs.type == 'vscode' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      VCSE_PAT: ${{ secrets.VCSE_PAT }}
+    
+    steps:
+      - uses: actions/checkout@v4
   
-  steps:
-    - uses: actions/checkout@v4
-
-    - name: Validate
-      run: |
-        set -euo pipefail
-        [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::version must look like 1.2.3"; exit 1; }
-        
-        if git ls-remote --exit-code --tags origin "refs/tags/vscode-v$VERSION" >/dev/null 2>&1
-        then
-        echo "::error::Tag vscode-v$VERSION already exists."
-        exit 1
-        fi
-        
-        if [ "${{ github.ref_name }}" != "${{ github.event.repository.default_branch }}" ]; then
-        echo "::error::Publishing is only allowed from '${{ github.event.repository.default_branch }}'."; exit 1
-        fi
-        
-        [ -n "$VSCE_PAT" ] || { echo "::error::Secret VSCE_PAT is not configured."; exit 1; }
-
-      - uses: pnpm/action-setup@v4
-        with:
-          package_json_file: src/PDML.Plugin.VSCode/package.json
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-
-      - name: Package
-        working-directory: src/PDML.Plugin.VSCode
+      - name: Validate
         run: |
-          pnpm version $VERSION --no-git-tag-version
-          pnpm install --frozen-lockfile --ignore-scripts
-          pnpm run package -o out/
+          set -euo pipefail
+          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::version must look like 1.2.3"; exit 1; }
+          
+          if git ls-remote --exit-code --tags origin "refs/tags/vscode-v$VERSION" >/dev/null 2>&1
+          then
+          echo "::error::Tag vscode-v$VERSION already exists."
+          exit 1
+          fi
+          
+          if [ "${{ github.ref_name }}" != "${{ github.event.repository.default_branch }}" ]; then
+          echo "::error::Publishing is only allowed from '${{ github.event.repository.default_branch }}'."; exit 1
+          fi
+          
+          [ -n "$VSCE_PAT" ] || { echo "::error::Secret VSCE_PAT is not configured."; exit 1; }
+  
+        - uses: pnpm/action-setup@v4
+          with:
+            package_json_file: src/PDML.Plugin.VSCode/package.json
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: vsix
-          path: "out/*.vsix"
-          retention-days: 30
+        - uses: actions/setup-node@v4
+          with:
+            node-version: 24
 
-      - name: Publish & Marketplace
-        run: npx --yes @vscode/vsce publish --oicd --packagePath out/pdml-$VERSION.vsix
+        - name: Package
+          working-directory: src/PDML.Plugin.VSCode
+          run: |
+            pnpm version $VERSION --no-git-tag-version
+            pnpm install --frozen-lockfile --ignore-scripts
+            pnpm run package -o out/
 
-      - name: Tag extension version
-        run: |
-          git tag "vscode-$VERSION"
-          git push origin "vscode-$VERSION"
+        - uses: actions/upload-artifact@v4
+          with:
+            name: vsix
+            path: "out/*.vsix"
+            retention-days: 30
+
+        - name: Publish & Marketplace
+          run: npx --yes @vscode/vsce publish --oicd --packagePath out/pdml-$VERSION.vsix
+
+        - name: Tag extension version
+          run: |
+            git tag "vscode-$VERSION"
+            git push origin "vscode-$VERSION"
           

@@ -88,11 +88,10 @@
         ]
     },
     "scripts": {
-        "vscode:prepublish": "pnpm run compile:prod",
+        "vscode:prepublish": "pnpm run compile",
         "check": "echo 'Checks defined'",
         "package": "vsce package --no-dependencies",
-        "compile": "tsc -p ./",
-        "compile:prod": "tsc -p ./ --sourceMap false"
+        "compile": "rolldown -c"
     },
     "packageManager": "pnpm@12.15.0",
     "type": "module",
@@ -100,6 +99,7 @@
         "@types/node": "^26.6.5",
         "@types/vscode": "^1.140.0",
         "@vscode/vsce": "^4.0.0",
+        "rolldown": "^1.2.16",
         "typescript": "^7.0.2"
     },
     "dependencies": {

@@ -1,6 +1,6 @@
 export const OWNER: string = "CBx0-dev";
 export const REPO: string = "PDML";
-export const ASSET_PREFIX: string = "pdml-lsp-";
+export const ASSET_PREFIX: string = "pdml-lsp";
 
 export interface GitHubReleaseAsset {
     name: string;

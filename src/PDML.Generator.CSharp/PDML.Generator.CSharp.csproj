@@ -1,11 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
+        <PackageId>PDML.Generator.CSharp</PackageId>
+        <Title>PDML C# Generator</Title>
+        <Description>C# code generator for the PDML language.</Description>
+        <PackageTags>pdml;generator;codegen;csharp;c#</PackageTags>
     </PropertyGroup>
 	
-	<ItemGroup>
-		<ProjectReference Include="..\PDML.Compiler\PDML.Compiler.csproj" />
-		<ProjectReference Include="..\PDML.Generator.Abstractions\PDML.Generator.Abstractions.csproj" />
-	</ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\PDML.Compiler\PDML.Compiler.csproj"/>
+        <ProjectReference Include="..\PDML.Generator.Abstractions\PDML.Generator.Abstractions.csproj"/>
+    </ItemGroup>
 
 </Project>

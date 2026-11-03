@@ -9,3 +9,6 @@ riderModule.iml
 .junie
 node_modules
 dist
+*.vsix
+*.nupkg
+*.snupkg

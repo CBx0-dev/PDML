@@ -1,13 +1,23 @@
 {
-    "name": "@pdml/vscode",
+    "name": "pdml",
+    "private": true,
+    "displayName": "PDML",
     "version": "1.0.0",
-    "description": "VScode plugin for the PDML Language",
+    "description": "VS Code extension for the PDML Language",
     "author": "CBx0",
     "publisher": "CBx0",
     "license": "Apache-2.0",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/CBx0-dev/PDML.git"
+    },
+    "bugs": {
+        "url": "https://github.com/CBx0-dev/PDML/issues"
+    },
+    "homepage": "https://github.com/CBx0-dev/PDML#readme",
     "main": "./dist/main.js",
     "engines": {
-        "vscode": "^1.105.0"
+        "vscode": "^1.140.0"
     },
     "categories": [
         "Programming Languages"
@@ -20,7 +30,9 @@
     "files": [
         "dist/**",
         "syntaxes/**",
-        "language-configuration.json"
+        "language-configuration.json",
+        "README.md",
+        "LICENSE"
     ],
     "contributes": {
         "languages": [
@@ -76,17 +88,11 @@
         ]
     },
     "scripts": {
-        "vscode:prepublish": "pnpm run check",
+        "vscode:prepublish": "pnpm run compile:prod",
         "check": "echo 'Checks defined'",
-        "package": "vsce package",
-        "compile": "tsc -p ./"
-    },
-    "devEngines": {
-        "packageManager": {
-            "name": "pnpm",
-            "version": "12.15.0",
-            "onFail": "download"
-        }
+        "package": "vsce package --no-dependencies",
+        "compile": "tsc -p ./",
+        "compile:prod": "tsc -p ./ --sourceMap false"
     },
     "packageManager": "pnpm@12.15.0",
     "type": "module",

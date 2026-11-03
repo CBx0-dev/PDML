@@ -1,10 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
+        <PackageId>PDML.Generator.Abstractions</PackageId>
+        <Title>PDML Generator Abstractions</Title>
+        <Description>Abstractions, interfaces, and base definitions for PDML code generators.</Description>
+        <PackageTags>pdml;generator;codegen;abstractions</PackageTags>
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\PDML.Compiler\PDML.Compiler.csproj" />
+        <ProjectReference Include="..\PDML.Compiler\PDML.Compiler.csproj"/>
     </ItemGroup>
 
 </Project>

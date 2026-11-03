@@ -5,10 +5,26 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>true</ImplicitUsings>
         <LangVersion>13</LangVersion>
-        <Version>1.0.0</Version>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <!-- Injected during build -->
+        <Version>0.0.0</Version>
         <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
         <Authors>CBx0</Authors>
+        <Owners>CBx0</Owners>
+        <PackageProjectUrl>https://github.com/CBx0-dev/PDML</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/CBx0-dev/PDML</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+        <PublishRepositoryUrl>true</PublishRepositoryUrl>
+        <EmbedUntrackedSources>true</EmbedUntrackedSources>
     </PropertyGroup>
+
+    <ItemGroup Condition="Exists('$(MSBuildThisFileDirectory)../README.md')">
+        <None Include="$(MSBuildThisFileDirectory)../README.md" Pack="true" PackagePath="\" />
+    </ItemGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
         <DebugSymbols>False</DebugSymbols>
@@ -19,9 +35,9 @@
         <Nullable>disable</Nullable>
         <NoWarn>$(NoWarn);CS8632</NoWarn>
     </PropertyGroup>
-    
+
     <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' AND '$(MSBuildProjectName)' != 'PDML.Compatibility' ">
-        <ProjectReference Include="../PDML.Compatibility/PDML.Compatibility.csproj" />
+        <ProjectReference Include="../PDML.Compatibility/PDML.Compatibility.csproj"/>
     </ItemGroup>
 
 </Project>

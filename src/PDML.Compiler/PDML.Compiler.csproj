@@ -1,6 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
+        <PackageId>PDML.Compiler</PackageId>
+        <Title>PDML Compiler</Title>
+        <Description>Core compiler, lexer, parser, and semantic model for the PDML language.</Description>
+        <PackageTags>pdml;compiler;parser;lexer;ast</PackageTags>
     </PropertyGroup>
 
 </Project>

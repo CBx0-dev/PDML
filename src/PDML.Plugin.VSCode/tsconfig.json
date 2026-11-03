@@ -14,7 +14,6 @@
     "rootDir": "src",
     "strict": true,
     "sourceMap": true,
-    "inlineSources": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,

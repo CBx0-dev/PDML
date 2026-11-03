@@ -1,11 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
+        <PackageId>PDML.Generator.TypeScript</PackageId>
+        <Title>PDML TypeScript Generator</Title>
+        <Description>TypeScript code generator for the PDML language.</Description>
+        <PackageTags>pdml;generator;codegen;typescript;ts</PackageTags>
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\PDML.Compiler\PDML.Compiler.csproj" />
-      <ProjectReference Include="..\PDML.Generator.Abstractions\PDML.Generator.Abstractions.csproj" />
+        <ProjectReference Include="..\PDML.Compiler\PDML.Compiler.csproj"/>
+        <ProjectReference Include="..\PDML.Generator.Abstractions\PDML.Generator.Abstractions.csproj"/>
     </ItemGroup>
 
 </Project>

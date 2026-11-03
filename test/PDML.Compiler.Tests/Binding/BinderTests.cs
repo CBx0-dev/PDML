@@ -4,6 +4,7 @@ using PDML.Compiler.Binding.Nodes.Members;
 using PDML.Compiler.Binding.Types;
 using PDML.Compiler.Common;
 using PDML.Compiler.Diagnostics;
+using PDML.Compiler.Diagnostics.Abstractions;
 using PDML.Compiler.Lexing;
 using PDML.Compiler.Parsing;
 using PDML.Compiler.Parsing.Nodes;
@@ -14,14 +15,14 @@ public sealed class BinderTests
 {
     private static (BoundModule BoundModule, DiagnosticBag Diagnostics) Bind(string content)
     {
-        DiagnosticBag diagnostics = new DiagnosticBag();
+        DiagnosticBag diagnostics = new DefaultDiagnosticBag();
         SourceFile sourceFile = SourceFile.Create(".", "test.pdml", content);
         Lexer lexer = new Lexer(diagnostics, sourceFile);
         List<Token> tokens = Lexer.TokenizeAll(diagnostics, sourceFile);
 
         Parser parser = new Parser(diagnostics, tokens);
         Module module = parser.ParseModule();
-        BoundModule boundModule = Binder.BindModule(diagnostics, module);
+        BoundModule boundModule = Binder.BindModule(".", diagnostics, module, []);
         return (boundModule, diagnostics);
     }
 

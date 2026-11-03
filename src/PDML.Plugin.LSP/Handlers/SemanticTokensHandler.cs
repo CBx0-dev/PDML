@@ -1,74 +1,105 @@
-using System.Collections.Concurrent;
-using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Document;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using OmniSharp.Extensions.LanguageServer.Protocol.Server;
+using PDML.Compiler.Common;
+using PDML.Compiler.Diagnostics.Abstractions;
+using PDML.Compiler.Parsing.Nodes;
+using PDML.Plugin.LSP.SemanticTokens;
+using PDML.Plugin.LSP.Services;
 
 namespace PDML.Plugin.LSP.Handlers;
 
-public class SemanticTokensHandler : SemanticTokensHandlerBase
+public sealed class SemanticTokensHandler : SemanticTokensHandlerBase
 {
-    public static readonly SemanticTokensLegend Legend = new SemanticTokensLegend
-    {
-        TokenTypes = new Container<SemanticTokenType>(
-            SemanticTokenType.Keyword,
-            SemanticTokenType.Type,
-            SemanticTokenType.Property,
-            SemanticTokenType.Operator
-        ),
-        TokenModifiers = new Container<SemanticTokenModifier>(
-            SemanticTokenModifier.Declaration,
-            SemanticTokenModifier.DefaultLibrary
-        )
-    };
+    private readonly IWindowLanguageServer _logger;
+    private readonly CompilationService _compilationService;
+    private readonly DocumentStoreService _documentStoreService;
 
-    private readonly DocumentStore _documentStore;
-    private readonly ConcurrentDictionary<DocumentUri, SemanticTokensDocument> _documents = new();
+    private readonly SemanticTokenGenerator _semanticTokenGenerator;
 
-    public SemanticTokensHandler(DocumentStore? documentStore = null)
+    private SemanticTokensLegend? _legend;
+
+    public SemanticTokensHandler(
+        IWindowLanguageServer logger,
+        CompilationService compilationService,
+        DocumentStoreService documentStoreService
+    )
     {
-        _documentStore = documentStore ?? new DocumentStore();
+        _logger = logger;
+        _compilationService = compilationService;
+        _documentStoreService = documentStoreService;
+
+        _semanticTokenGenerator = new SemanticTokenGenerator();
+
+        _legend = null;
     }
 
     protected override SemanticTokensRegistrationOptions CreateRegistrationOptions(
-        SemanticTokensCapability capability, 
+        SemanticTokensCapability capability,
         ClientCapabilities clientCapabilities)
     {
+        _legend = new SemanticTokensLegend
+        {
+            TokenTypes = new Container<SemanticTokenType>(
+                SemanticTokenType.Type,
+                SemanticTokenType.Keyword,
+                SemanticTokenType.Operator,
+                SemanticTokenType.Property,
+                SemanticTokenType.String
+            ),
+            TokenModifiers = new Container<SemanticTokenModifier>(
+                SemanticTokenModifier.Declaration
+            )
+        };
+
         return new SemanticTokensRegistrationOptions
         {
             DocumentSelector = TextDocumentSelector.ForLanguage("pdml"),
-            Legend = Legend,
-            Full = new SemanticTokensCapabilityRequestFull
-            {
-                Delta = true
-            },
+            Legend = _legend,
+            Full = false,
             Range = true
         };
     }
 
-    protected override Task<SemanticTokensDocument> GetSemanticTokensDocument(
-        ITextDocumentIdentifierParams @params, 
-        CancellationToken cancellationToken)
+    protected override Task Tokenize(SemanticTokensBuilder builder, ITextDocumentIdentifierParams identifier, CancellationToken cancellationToken)
     {
-        return Task.FromResult(_documents.GetOrAdd(@params.TextDocument.Uri, _ => new SemanticTokensDocument(Legend)));
-    }
-
-    protected override Task Tokenize(
-        SemanticTokensBuilder builder, 
-        ITextDocumentIdentifierParams @params, 
-        CancellationToken cancellationToken)
-    {
-        string? text = _documentStore.GetText(@params.TextDocument.Uri);
-        if (text is not null)
+        SourceFile? source = _documentStoreService.Read(identifier.TextDocument.Uri);
+        if (source is null)
         {
-            string path = @params.TextDocument.Uri.GetFileSystemPath();
-            List<SemanticTokenInfo> tokens = PdmlSemanticTokens.CollectTokens(text, path);
-            foreach (SemanticTokenInfo token in tokens)
-            {
-                builder.Push(token.Line, token.Column, token.Length, token.TokenType, token.Modifiers);
-            }
+            return Task.CompletedTask;
+        }
+
+        Module? module = _compilationService.ParseModule(source, out DiagnosticBag diagnostics);
+        if (module is null || diagnostics.HasErrors)
+        {
+            return Task.CompletedTask;
+        }
+
+        IReadOnlyList<SemanticToken> tokens = _semanticTokenGenerator.Generate(module);
+        foreach (SemanticToken token in tokens)
+        {
+            builder.Push(
+                token.Location.Start.Line - 1,
+                token.Location.Start.Column - 1,
+                token.Location.Length,
+                token.Type,
+                token.Modifiers
+            );
         }
 
         return Task.CompletedTask;
+    }
+
+    protected override Task<SemanticTokensDocument> GetSemanticTokensDocument(ITextDocumentIdentifierParams @params, CancellationToken cancellationToken)
+    {
+        if (_legend is null)
+        {
+            throw new InvalidOperationException("Legend is not initialized");
+        }
+
+        return Task.FromResult(
+            new SemanticTokensDocument(_legend)
+        );
     }
 }

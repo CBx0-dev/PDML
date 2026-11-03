@@ -1,4 +1,4 @@
-using PDML.Compiler.Diagnostics;
+using PDML.Compiler.Diagnostics.Abstractions;
 
 namespace PDML.Compiler.Parsing;
 
@@ -21,10 +21,20 @@ public static class ParsingError
         MessageFormat = "Unexpected token '{0}'",
         ArgumentCount = 1
     };
+    
+    public static readonly DiagnosticDescriptor FileNotFound = new DiagnosticDescriptor
+    {
+        Code = (int)Code.FileNotFound,
+        Step = CompilationStep.Parsing,
+        Severity = DiagnosticSeverity.Error,
+        MessageFormat = "File '{0}' could not be resolved from '{1}'",
+        ArgumentCount = 2
+    };
 
     public enum Code
     {
         ExpectedToken = 2000,
-        UnexpectedToken
+        UnexpectedToken,
+        FileNotFound
     }
 }

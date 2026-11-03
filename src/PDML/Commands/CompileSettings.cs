@@ -15,11 +15,15 @@ internal sealed class CompileSettings : CommandSettings
     [Description("The path to *.pdml a file or a glob pattern that resolves to multiple files")]
     public required string[] Paths { get; init; }
 
-    [CommandOption("--generator", true)]
+    [CommandOption("-g|--generator", true)]
     [Description("The generator key that determines the output file format")]
     public required string Generator { get; init; }
 
     [CommandOption("-p <VALUE>")]
     [Description("Options to pass to the generator")]
     public ILookup<string, string>? Properties { get; init; }
+
+    [CommandOption("-o|--output", true)]
+    [Description("The output directory")]
+    public required string OutputDirectory { get; init; }
 }

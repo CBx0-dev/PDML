@@ -2,35 +2,108 @@ using PDML.Compiler.Binding.Nodes;
 using PDML.Compiler.Binding.Nodes.Members;
 using PDML.Compiler.Binding.Types;
 using PDML.Compiler.Common;
-using PDML.Compiler.Diagnostics;
+using PDML.Compiler.Lexing;
 using PDML.Compiler.Parsing.Nodes;
 using PDML.Compiler.Parsing.Nodes.Members;
+using PDML.Compiler.Diagnostics.Abstractions;
 
 namespace PDML.Compiler.Binding;
 
 public sealed class Binder
 {
+    private readonly string _projectRoot;
     private readonly DiagnosticBag _diagnostics;
     private readonly Module _module;
+    private readonly BoundModule[] _dependencies;
+    private readonly Dictionary<BoundModule, List<BoundTypeDefinition>> _importedTypes;
     private readonly Dictionary<BoundTypeDefinition, Dictionary<string, BoundTypeDefinitionProperty>> _types;
     private readonly Dictionary<string, Location> _seenNames;
 
-    private Binder(DiagnosticBag diagnostics, Module module)
+    private Binder(string projectRoot, DiagnosticBag diagnostics, Module module, BoundModule[] dependencies)
     {
+        _projectRoot = projectRoot;
         _diagnostics = diagnostics;
         _module = module;
+        _dependencies = dependencies;
+        _importedTypes = new Dictionary<BoundModule, List<BoundTypeDefinition>>();
         _types = new Dictionary<BoundTypeDefinition, Dictionary<string, BoundTypeDefinitionProperty>>();
         _seenNames = new Dictionary<string, Location>();
     }
 
     private BoundModule BindModule()
     {
+        BindImports();
         BindTypeDefinitionHeaders();
         BindTypeDefinitionInheritances();
         BindTypeDefinitionBasicBodies();
         BindTypeCompositionBodies();
 
-        return new BoundModule(_module.Location, _types.Keys.ToArray());
+        ModuleIdentity identity = ModuleIdentity.FromPath(_projectRoot, _module.Location.SourceFile.FilePath);
+
+        return new BoundModule(
+            _module.Location,
+            identity,
+            _importedTypes.ToDictionary(
+                pair => pair.Key,
+                pair => (IReadOnlyList<BoundTypeDefinition>)pair.Value
+            ),
+            _types.Keys.ToArray()
+        );
+    }
+
+    private void BindImports()
+    {
+        if (_diagnostics.HasErrors)
+        {
+            return;
+        }
+
+        HashSet<BoundModule> seenDependencies = new HashSet<BoundModule>();
+        foreach (ImportMember import in _module.Imports)
+        {
+            BindImport(seenDependencies, import);
+        }
+    }
+
+    private void BindImport(HashSet<BoundModule> seenDependencies, ImportMember import)
+    {
+        string relativePath = TokenUtils.NormalizeString(import.Locator);
+        string absolutePath = Path.GetFullPath(Path.Combine(_projectRoot, relativePath));
+        BoundModule module = _dependencies.First(module => module.Identity.FilePath == absolutePath);
+
+        if (!seenDependencies.Add(module))
+        {
+            _diagnostics.Report(
+                BindingError.DoubleImport,
+                import.Location,
+                relativePath
+            );
+        }
+
+        foreach (Token symbol in import.Symbols)
+        {
+            string symbolName = symbol.Value;
+            if (!module.TryGetSymbol(symbolName, out BoundTypeDefinition? importedType))
+            {
+                _diagnostics.Report(BindingError.UnknownImport, symbol.Location, symbolName, relativePath);
+                continue;
+            }
+
+            if (_seenNames.TryGetValue(symbolName, out Location? previousLocation))
+            {
+                _diagnostics.Report(BindingError.DuplicateName, symbol.Location, previousLocation, symbolName);
+                continue;
+            }
+
+            _seenNames.Add(symbolName, symbol.Location);
+            if (_importedTypes.TryGetValue(module, out List<BoundTypeDefinition>? existingImports))
+            {
+                existingImports.Add(importedType);
+                continue;
+            }
+
+            _importedTypes[module] = [importedType];
+        }
     }
 
     private void BindTypeDefinitionHeaders()
@@ -176,7 +249,8 @@ public sealed class Binder
         }
     }
 
-    private void BindTypeDefinitionBasicBody(IEnumerable<TypeDefinitionItem> items, BoundTypeDefinition type, Dictionary<string, BoundTypeDefinitionProperty> body)
+    private void BindTypeDefinitionBasicBody(IEnumerable<TypeDefinitionItem> items, BoundTypeDefinition type,
+        Dictionary<string, BoundTypeDefinitionProperty> body)
     {
         foreach (TypeDefinitionItem item in items)
         {
@@ -320,12 +394,16 @@ public sealed class Binder
                 return IntrinsicTypeRef.String;
         }
 
-        BoundTypeDefinition? definition = _types.Keys.FirstOrDefault(t => t.Name == name);
+        BoundTypeDefinition? definition = _types.Keys
+            .Concat(_importedTypes.Values.SelectMany(l => l))
+            .FirstOrDefault(t => t.Name == name);
+
         if (definition is null)
         {
             _diagnostics.Report(BindingError.UnknownType, target.Name.Location, target.Name.Value);
             return null;
         }
+
         if (!allowVirtual && definition.IsVirtual)
         {
             _diagnostics.Report(BindingError.VirtualTypeNotAllowed, target.Name.Location);
@@ -333,7 +411,7 @@ public sealed class Binder
         }
 
         return new TypeDefinitionTypeRef(definition);
-        
+
     }
 
     private TypeRef? ExecuteTypeFunction()
@@ -342,9 +420,9 @@ public sealed class Binder
         return null;
     }
 
-    public static BoundModule BindModule(DiagnosticBag diagnostics, Module module)
+    public static BoundModule BindModule(string projectRoot, DiagnosticBag diagnostics, Module module, BoundModule[] dependencies)
     {
-        Binder binder = new Binder(diagnostics, module);
+        Binder binder = new Binder(projectRoot, diagnostics, module, dependencies);
 
         return binder.BindModule();
     }

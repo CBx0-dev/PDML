@@ -4,9 +4,9 @@ namespace PDML.Generator.Abstractions;
 
 public static class GeneratorLoader
 {
-    private static Dictionary<string, CodeGenerator> _generators = new Dictionary<string, CodeGenerator>();
+    private static readonly Dictionary<string, CodeGeneratorBuilder> _generators = new Dictionary<string, CodeGeneratorBuilder>();
 
-    public static List<string> LookupPaths = new List<string>();
+    public static readonly List<string> LookupPaths = new List<string>();
 
     public static void LoadAssemblies()
     {
@@ -34,20 +34,20 @@ public static class GeneratorLoader
                 Assembly assembly = Assembly.LoadFile(dll);
                 foreach (Type type in assembly.GetTypes())
                 {
-                    if (type.IsAbstract || !typeof(CodeGenerator).IsAssignableFrom(type))
+                    if (type.IsAbstract || !typeof(CodeGeneratorBuilder).IsAssignableFrom(type))
                     {
                         continue;
                     }
 
-                    CodeGenerator? generator = (CodeGenerator?)Activator.CreateInstance(type);
+                    CodeGeneratorBuilder? generator = (CodeGeneratorBuilder?)Activator.CreateInstance(type);
                     if (generator is null)
                     {
-                        return;
+                        continue;
                     }
 
                     _generators[generator.Key] = generator;
                 }
-            } 
+            }
             catch
             {
                 // TODO thing about exceptions
@@ -55,14 +55,13 @@ public static class GeneratorLoader
         }
     }
 
-    public static CodeGenerator? LoadGenerator(string key)
+    public static CodeGeneratorBuilder? LoadGenerator(string key)
     {
-        if (_generators.TryGetValue(key, out CodeGenerator? generator))
+        if (_generators.TryGetValue(key, out CodeGeneratorBuilder? generator))
         {
             return generator;
         }
 
         return null;
     }
-
 }

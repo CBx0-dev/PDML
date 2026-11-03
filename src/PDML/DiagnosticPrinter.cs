@@ -1,13 +1,13 @@
 ﻿using PDML.Compiler.Common;
 using PDML.Compiler.Diagnostics;
+using PDML.Compiler.Diagnostics.Abstractions;
 using Spectre.Console;
-using System.Drawing;
 
 namespace PDML;
 
 internal static class DiagnosticPrinter
 {
-    public static void Print(DiagnosticBag diagnostics)
+    public static void Print(DefaultDiagnosticBag diagnostics)
     {
         foreach (Diagnostic diagnostic in diagnostics)
         {

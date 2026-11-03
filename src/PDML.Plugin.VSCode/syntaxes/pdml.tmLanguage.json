@@ -20,6 +20,9 @@
         },
         {
             "include": "#comments"
+        },
+        {
+            "include": "#strings"
         }
     ],
     "repository": {
@@ -27,7 +30,7 @@
             "patterns": [
                 {
                     "name": "keyword.control.pdml",
-                    "match": "\\b(type|virtual)\\b"
+                    "match": "\\b(import|from|type|virtual)\\b"
                 }
             ]
         },
@@ -76,6 +79,17 @@
                 {
                     "name": "comment.line",
                     "match": "//.*$"
+                }
+            ]
+        },
+        "strings": {
+            "name": "string.quoted.double",
+            "begin": "\"",
+            "end": "\"",
+            "patterns": [
+                {
+                    "name": "constant.character.escape",
+                    "match": "\\\\."
                 }
             ]
         }

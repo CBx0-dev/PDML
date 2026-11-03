@@ -1,37 +1,35 @@
 ﻿using Microsoft.CodeAnalysis.Text;
 using PDML.Compiler.Common;
-using PDML.Compiler.Diagnostics;
+using PDML.Compiler.Diagnostics.Abstractions;
 
 namespace PDML.Generator.CSharp.Roslyn;
 
-internal static class DiagnosticBagExtension
+internal sealed class RoslynDiagnosticBag : DiagnosticBag<Microsoft.CodeAnalysis.Diagnostic>
 {
-    public static Microsoft.CodeAnalysis.Diagnostic[] ToRoslynDiagnostics(this DiagnosticBag diagnostics)
-    {
-        List<Microsoft.CodeAnalysis.Diagnostic> roslynDiagnostics = new List<Microsoft.CodeAnalysis.Diagnostic>();
+    public override bool HasErrors => _diagnostics.Any(diagnostic => diagnostic.Severity == Microsoft.CodeAnalysis.DiagnosticSeverity.Error);
 
-        foreach (Diagnostic diagnostic in diagnostics)
+    public override bool HasWarnings => _diagnostics.Any(diagnostic => diagnostic.Severity == Microsoft.CodeAnalysis.DiagnosticSeverity.Warning);
+
+    public override bool HasInfos => _diagnostics.Any(diagnostic => diagnostic.Severity == Microsoft.CodeAnalysis.DiagnosticSeverity.Info);
+
+    public override void Report(DiagnosticDescriptor descriptor, Location location, Location[] additionalLocations, params object[] args)
+    {
+        if (args.Length != descriptor.ArgumentCount)
         {
-            roslynDiagnostics.Add(MapDiagnostic(diagnostic));
+            throw new ArgumentException($"Expected {descriptor.ArgumentCount} arguments, but got {args.Length}.", nameof(args));
         }
 
-        return roslynDiagnostics.ToArray();
-    }
-
-    private static Microsoft.CodeAnalysis.Diagnostic MapDiagnostic(Diagnostic diagnostic)
-    {
-        string id = "PDML" + diagnostic.Descriptor.Code;
-
-        Microsoft.CodeAnalysis.DiagnosticSeverity severity = diagnostic.Descriptor.Severity switch
+        string id = "PDML" + descriptor.Code;
+        Microsoft.CodeAnalysis.DiagnosticSeverity severity = descriptor.Severity switch
         {
             DiagnosticSeverity.Info => Microsoft.CodeAnalysis.DiagnosticSeverity.Info,
             DiagnosticSeverity.Warning => Microsoft.CodeAnalysis.DiagnosticSeverity.Warning,
             DiagnosticSeverity.Error => Microsoft.CodeAnalysis.DiagnosticSeverity.Error,
-            _ => throw new ArgumentException("Unknown severity", nameof(diagnostic.Descriptor.Severity))
+            _ => throw new ArgumentException("Unknown severity", nameof(descriptor.Severity))
         };
 
-        Microsoft.CodeAnalysis.Location location = MapLocation(diagnostic.Location);
-        Microsoft.CodeAnalysis.Location[] additonalLocation = diagnostic.AdditionalLocations
+        Microsoft.CodeAnalysis.Location roslynLocation = MapLocation(location);
+        Microsoft.CodeAnalysis.Location[] roslynAdditionalLocation = additionalLocations
             .Select(MapLocation)
             .ToArray();
 
@@ -39,17 +37,17 @@ internal static class DiagnosticBagExtension
             id: id,
             title: id,
             messageFormat: "{0}",
-            category: diagnostic.Descriptor.Step.ToString(),
+            category: descriptor.Step.ToString(),
             defaultSeverity: severity,
             isEnabledByDefault: true
         );
 
-        return Microsoft.CodeAnalysis.Diagnostic.Create(
+        _diagnostics.Add(Microsoft.CodeAnalysis.Diagnostic.Create(
             descriptor: roslynDescriptor,
-            location: location,
-            additionalLocations: additonalLocation,
-            messageArgs: [diagnostic.Message]
-        );
+            location: roslynLocation,
+            additionalLocations: roslynAdditionalLocation,
+            messageArgs: [string.Format(descriptor.MessageFormat, args)]
+        ));
     }
 
     private static Microsoft.CodeAnalysis.Location MapLocation(Location location)

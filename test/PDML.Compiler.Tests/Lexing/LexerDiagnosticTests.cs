@@ -1,14 +1,15 @@
 using PDML.Compiler.Common;
 using PDML.Compiler.Diagnostics;
+using PDML.Compiler.Diagnostics.Abstractions;
 using PDML.Compiler.Lexing;
 
 namespace PDML.Compiler.Tests.Lexing;
 
 public sealed class LexerDiagnosticTests
 {
-    private static (Lexer Lexer, DiagnosticBag Diagnostics) CreateLexer(string content)
+    private static (Lexer Lexer, DefaultDiagnosticBag Diagnostics) CreateLexer(string content)
     {
-        DiagnosticBag diagnostics = new DiagnosticBag();
+        DefaultDiagnosticBag diagnostics = new DefaultDiagnosticBag();
         SourceFile sourceFile = SourceFile.Create(".", "test.pdml", content);
         Lexer lexer = new Lexer(diagnostics, sourceFile);
         return (lexer, diagnostics);
@@ -24,7 +25,7 @@ public sealed class LexerDiagnosticTests
     [InlineData("@")]
     public void NextToken_WithUnexpectedCharacter_ReturnsErrorTokenAndReportsDiagnostic(string unexpected)
     {
-        (Lexer lexer, DiagnosticBag diagnostics) = CreateLexer(unexpected);
+        (Lexer lexer, DefaultDiagnosticBag diagnostics) = CreateLexer(unexpected);
 
         Token token = lexer.NextToken();
 

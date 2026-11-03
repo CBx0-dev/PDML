@@ -1,5 +1,5 @@
 using PDML.Compiler.Common;
-using PDML.Compiler.Diagnostics;
+using PDML.Compiler.Diagnostics.Abstractions;
 
 namespace PDML.Compiler.Lexing;
 
@@ -68,6 +68,11 @@ public sealed class Lexer
         {
             return NextIdentifier(start);
         }
+
+        if (_current == '"')
+        {
+            return NextString(start);
+        }
         
         if (_current == '/' && _next == '/')
         {
@@ -134,14 +139,58 @@ public sealed class Lexer
             Start = start,
             End = _data
         };
-        var type = content switch
+        TokenType type = content switch
         {
             "type" => TokenType.TypeKeyword,
             "virtual" => TokenType.VirtualKeyword,
+            "import" => TokenType.ImportKeyword,
+            "from" => TokenType.FromKeyword,
             _ => TokenType.Identifier,
         };
 
         return CreateToken(location, type, content);
+    }
+    
+    private Token NextString(Coordinate start)
+    {
+        Skip();
+
+        while (!_isEof && _current != '"')
+        {
+            if (_current == '\n')
+            {
+                Location location = new Location
+                {
+                    SourceFile = _sourceFile,
+                    Start = start,
+                    End = _data
+                };
+                _diagnostics.Report(LexingError.UnterminatedString, location);
+                return CreateToken(location, TokenType.Error);
+            }
+
+            if (_current == '\\')
+            {
+                Skip();
+            }
+
+            Skip();
+        }
+
+        if (_current != '"')
+        {
+            Location location = new Location
+            {
+                SourceFile = _sourceFile,
+                Start = start,
+                End = _data
+            };
+            _diagnostics.Report(LexingError.UnterminatedString, location);
+            return CreateToken(location, TokenType.Error);
+        }
+        Skip();
+
+        return CreateToken(start, TokenType.String);
     }
 
     private Token NextComment(Coordinate start)

@@ -1,6 +1,6 @@
 namespace PDML.Compiler.Common;
 
-public struct Coordinate
+public record struct Coordinate
 {
     public required int Position { get; set; }
     public required int Line { get; set; }

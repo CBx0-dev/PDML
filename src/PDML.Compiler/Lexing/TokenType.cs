@@ -7,9 +7,12 @@ public enum TokenType
     Whitespace,
     Identifier,
     Comment,
+    String,
 
     TypeKeyword,
     VirtualKeyword,
+    ImportKeyword,
+    FromKeyword,
 
     Ampersand,
     Colon,

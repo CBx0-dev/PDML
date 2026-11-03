@@ -1,4 +1,4 @@
-using PDML.Compiler.Diagnostics;
+using PDML.Compiler.Diagnostics.Abstractions;
 
 namespace PDML.Compiler.Binding;
 
@@ -76,6 +76,24 @@ public static class BindingError
         ArgumentCount = 2
     };
 
+    public static readonly DiagnosticDescriptor UnknownImport = new DiagnosticDescriptor
+    {
+        Code = (int)Code.UnknownImport,
+        Step = CompilationStep.Binding,
+        Severity = DiagnosticSeverity.Error,
+        MessageFormat = "No symbol named '{0}' is exported from '{1}'",
+        ArgumentCount = 2
+    };
+
+    public static readonly DiagnosticDescriptor DoubleImport = new DiagnosticDescriptor
+    {
+        Code = (int)Code.DoubleImport,
+        Step = CompilationStep.Binding,
+        Severity = DiagnosticSeverity.Warning,
+        MessageFormat = "Module '{0}' is already imported. Consider combining imports.",
+        ArgumentCount = 1
+    };
+
     public enum Code
     {
         DuplicateName = 3000,
@@ -85,6 +103,8 @@ public static class BindingError
         IntrinsicTypeNotAllowed,
         CircularInheritance,
         DuplicateProperty,
-        DuplicatePropertyComposition
+        DuplicatePropertyComposition,
+        UnknownImport,
+        DoubleImport
     }
 }

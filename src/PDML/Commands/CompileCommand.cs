@@ -1,83 +1,41 @@
 using GlobExpressions;
-using PDML.Compiler.Binding;
-using PDML.Compiler.Binding.Nodes;
+using PDML.Compiler;
 using PDML.Compiler.Common;
 using PDML.Compiler.Diagnostics;
-using PDML.Compiler.Lexing;
-using PDML.Compiler.Parsing;
-using PDML.Compiler.Parsing.Nodes;
 using PDML.Generator.Abstractions;
 using Spectre.Console.Cli;
 
 namespace PDML.Commands;
 
-internal sealed class CompileCommand : AsyncCommand<CompileSettings>
+internal sealed class CompileCommand : Command<CompileSettings>
 {
-    public override async Task<int> ExecuteAsync(CommandContext context, CompileSettings settings, CancellationToken cancellationToken)
+    public override int Execute(CommandContext context, CompileSettings settings, CancellationToken cancellationToken)
     {
-        CodeGenerator generator = InitGenerator(settings.Generator, settings.DllFolders);
-        GeneratorSettings generatorSettings = GeneratorSettingsMapper.Map(settings.Properties, generator.SettingsType);
+        CodeGenerator generator = InitGenerator(settings.Generator, settings.Properties, settings.DllFolders);
 
         SourceFile[] sourceFiles = ReadFiles(settings.Paths);
+        Compilation compilation = CompilerService.CompileEntryPoints(
+            new DefaultDiagnosticService(),
+            sourceFiles
+        );
 
-        DiagnosticBag diagnostics = new DiagnosticBag();
-        List<BoundModule> modules = new List<BoundModule>();
-          
-
-        foreach (SourceFile sourceFile in sourceFiles)
+        if (compilation.Diagnostics.HasItems)
         {
-            BoundModule? module = ParseFile(sourceFile, out DiagnosticBag moduleDiagnostics);
-            diagnostics.Consume(moduleDiagnostics);
-            
-            if (module is not null)
-            {
-                modules.Add(module);
-            }
+            DiagnosticPrinter.Print((DefaultDiagnosticBag)compilation.Diagnostics);
         }
 
-
-        if (diagnostics.HasErrors)
+        if (compilation.HasErrors)
         {
-            DiagnosticPrinter.Print(diagnostics);
             return 1;
         }
 
-        foreach (BoundModule module in modules)
-        {
-            generator.GenerateModule(Console.Out, generatorSettings, module);
-        }
+        OutputBuilder output = generator.Generate(compilation.Modules);
+        output.SaveTo(settings.OutputDirectory);
 
         return 0;
     }
 
-    private BoundModule? ParseFile(SourceFile sourceFile, out DiagnosticBag diagnostics)
-    {
-        diagnostics = new DiagnosticBag();
-
-        List<Token> tokens = Lexer.TokenizeAll(diagnostics, sourceFile);
-
-        if (diagnostics.HasErrors)
-        {
-            return null;
-        }
-
-        Parser parser = new Parser(diagnostics, tokens);
-        Module module = parser.ParseModule();
-        if (diagnostics.HasErrors)
-        {
-            return null;
-        }
-
-        BoundModule boundModule = Binder.BindModule(diagnostics, module);
-        if (diagnostics.HasErrors)
-        {
-            return null;
-        }
-
-        return boundModule;
-    }
-
-    private CodeGenerator InitGenerator(string generatorKey, string[]? dllFolders)
+    private CodeGenerator InitGenerator(string generatorKey, ILookup<string, string>? properties, string[]? dllFolders)
     {
         GeneratorLoader.LookupPaths.Add(AppContext.BaseDirectory);
 
@@ -88,13 +46,15 @@ internal sealed class CompileCommand : AsyncCommand<CompileSettings>
 
         GeneratorLoader.LoadAssemblies();
 
-        CodeGenerator? generator = GeneratorLoader.LoadGenerator(generatorKey);
-        if (generator is null)
+        CodeGeneratorBuilder? builder = GeneratorLoader.LoadGenerator(generatorKey);
+        if (builder is null)
         {
-            throw new ArgumentException($"Unknown generator '{generatorKey}'", nameof(generator));
+            throw new ArgumentException($"Unknown generator '{generatorKey}'", nameof(builder));
         }
 
-        return generator;
+        GeneratorSettings settings = GeneratorSettingsMapper.Map(properties, builder.SettingsType);
+
+        return builder.CreateInstance(settings);
     }
 
     private SourceFile[] ReadFiles(string[] paths)
@@ -129,7 +89,7 @@ internal sealed class CompileCommand : AsyncCommand<CompileSettings>
             {
                 if (Path.GetExtension(file) == ".pdml")
                 {
-                    sourceFiles.Add(SourceFile.Read(file));   
+                    sourceFiles.Add(SourceFile.Read(file));
                 }
             }
         }

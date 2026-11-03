@@ -6,9 +6,9 @@ namespace PDML.Compiler.Tests.Lexing;
 
 public sealed class LexerLocationTests
 {
-    private static List<Token> LexAll(string content, out DiagnosticBag diagnostics)
+    private static List<Token> LexAll(string content, out DefaultDiagnosticBag diagnostics)
     {
-        DiagnosticBag diag = new DiagnosticBag();
+        DefaultDiagnosticBag diag = new DefaultDiagnosticBag();
         SourceFile sourceFile = SourceFile.Create(".", "test.pdml", content);
         Lexer lexer = new Lexer(diag, sourceFile);
         diagnostics = diag;
@@ -31,7 +31,7 @@ public sealed class LexerLocationTests
     public void NextToken_TracksCoordinatesAndLocationsAccurately_AcrossNewlines()
     {
         const string source = "first\nsecond\n  third";
-        List<Token> tokens = LexAll(source, out DiagnosticBag diagnostics);
+        List<Token> tokens = LexAll(source, out DefaultDiagnosticBag diagnostics);
 
         Assert.False(diagnostics.HasErrors);
         Assert.Equal(6, tokens.Count);

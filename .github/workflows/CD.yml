@@ -256,7 +256,7 @@ jobs:
 
       - name: Publish & Marketplace
         working-directory: src/PDML.Plugin.VSCode
-        run: npx --yes @vscode/vsce publish --oidc --packagePath ./pdml-$VERSION.vsix
+        run: npx --yes @vscode/vsce@^4.1.0 publish --oidc --packagePath ./pdml-$VERSION.vsix
 
       - name: Tag extension version
         run: |

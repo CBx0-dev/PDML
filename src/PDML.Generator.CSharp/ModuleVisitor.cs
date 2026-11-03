@@ -73,6 +73,7 @@ public sealed class ModuleVisitor : ModuleVisitorBase
         }
 
         _writer.WriteLine('}');
+        _writer.WriteLine();
     }
 
     protected override void Visit(IntrinsicTypeRef type)

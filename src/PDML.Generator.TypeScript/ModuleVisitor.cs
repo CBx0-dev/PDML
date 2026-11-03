@@ -19,6 +19,28 @@ public sealed class ModuleVisitor : ModuleVisitorBase
 
     protected override void Visit(BoundModule module)
     {
+        foreach ((BoundModule source, IReadOnlyList<BoundTypeDefinition> symbols) in module.Imports)
+        {
+            _writer.Write("import { ");
+            bool first = true;
+            foreach (BoundTypeDefinition symbol in symbols)
+            {
+                if (!first)
+                {
+                    _writer.Write(", ");
+                }
+
+                first = false;
+                _writer.Write(symbol.Name.ToPascalCase());
+            }
+
+            _writer.Write(" } from \"./");
+            _writer.Write(source.Identity.ToGeneratorString());
+            _writer.WriteLine("\";");
+        }
+
+        _writer.WriteLine();
+
         foreach (BoundTypeDefinition type in module.Types)
         {
             Visit(type);
@@ -47,6 +69,7 @@ public sealed class ModuleVisitor : ModuleVisitorBase
         }
 
         _writer.WriteLine('}');
+        _writer.WriteLine();
     }
 
     protected override void Visit(IntrinsicTypeRef type)

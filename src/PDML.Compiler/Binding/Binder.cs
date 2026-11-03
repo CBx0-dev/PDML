@@ -15,7 +15,7 @@ public sealed class Binder
     private readonly DiagnosticBag _diagnostics;
     private readonly Module _module;
     private readonly BoundModule[] _dependencies;
-    private readonly Dictionary<string, BoundTypeDefinition> _importedTypes;
+    private readonly Dictionary<BoundModule, List<BoundTypeDefinition>> _importedTypes;
     private readonly Dictionary<BoundTypeDefinition, Dictionary<string, BoundTypeDefinitionProperty>> _types;
     private readonly Dictionary<string, Location> _seenNames;
 
@@ -25,7 +25,7 @@ public sealed class Binder
         _diagnostics = diagnostics;
         _module = module;
         _dependencies = dependencies;
-        _importedTypes = new Dictionary<string, BoundTypeDefinition>();
+        _importedTypes = new Dictionary<BoundModule, List<BoundTypeDefinition>>();
         _types = new Dictionary<BoundTypeDefinition, Dictionary<string, BoundTypeDefinitionProperty>>();
         _seenNames = new Dictionary<string, Location>();
     }
@@ -39,8 +39,16 @@ public sealed class Binder
         BindTypeCompositionBodies();
 
         ModuleIdentity identity = ModuleIdentity.FromPath(_projectRoot, _module.Location.SourceFile.FilePath);
-        
-        return new BoundModule(_module.Location, identity, _dependencies, _types.Keys.ToArray());
+
+        return new BoundModule(
+            _module.Location,
+            identity,
+            _importedTypes.ToDictionary(
+                pair => pair.Key,
+                pair => (IReadOnlyList<BoundTypeDefinition>)pair.Value
+            ),
+            _types.Keys.ToArray()
+        );
     }
 
     private void BindImports()
@@ -49,7 +57,7 @@ public sealed class Binder
         {
             return;
         }
-        
+
         foreach (ImportMember import in _module.Imports)
         {
             BindImport(import);
@@ -78,7 +86,13 @@ public sealed class Binder
             }
 
             _seenNames.Add(symbolName, symbol.Location);
-            _importedTypes.Add(symbolName, importedType);
+            if (_importedTypes.TryGetValue(module, out List<BoundTypeDefinition>? existingImports))
+            {
+                existingImports.Add(importedType);
+                continue;
+            }
+
+            _importedTypes[module] = [importedType];
         }
     }
 
@@ -225,7 +239,8 @@ public sealed class Binder
         }
     }
 
-    private void BindTypeDefinitionBasicBody(IEnumerable<TypeDefinitionItem> items, BoundTypeDefinition type, Dictionary<string, BoundTypeDefinitionProperty> body)
+    private void BindTypeDefinitionBasicBody(IEnumerable<TypeDefinitionItem> items, BoundTypeDefinition type,
+        Dictionary<string, BoundTypeDefinitionProperty> body)
     {
         foreach (TypeDefinitionItem item in items)
         {
@@ -370,7 +385,7 @@ public sealed class Binder
         }
 
         BoundTypeDefinition? definition = _types.Keys
-            .Concat(_importedTypes.Values)
+            .Concat(_importedTypes.Values.SelectMany(l => l))
             .FirstOrDefault(t => t.Name == name);
 
         if (definition is null)
@@ -378,6 +393,7 @@ public sealed class Binder
             _diagnostics.Report(BindingError.UnknownType, target.Name.Location, target.Name.Value);
             return null;
         }
+
         if (!allowVirtual && definition.IsVirtual)
         {
             _diagnostics.Report(BindingError.VirtualTypeNotAllowed, target.Name.Location);
@@ -385,7 +401,7 @@ public sealed class Binder
         }
 
         return new TypeDefinitionTypeRef(definition);
-        
+
     }
 
     private TypeRef? ExecuteTypeFunction()

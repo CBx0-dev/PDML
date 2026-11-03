@@ -7,14 +7,22 @@ namespace PDML.Compiler.Binding.Nodes;
 public sealed class BoundModule : BoundNode
 {
     public ModuleIdentity Identity { get; internal set; }
-    public IReadOnlyList<BoundModule> Dependencies { get; internal set; }
+    public IReadOnlyDictionary<BoundModule, IReadOnlyList<BoundTypeDefinition>> Imports { get; internal set; }
     public IReadOnlyList<BoundTypeDefinition> Types { get; internal set; }
 
-    public BoundModule(Location? location, ModuleIdentity identity, IEnumerable<BoundModule> dependencies, IEnumerable<BoundTypeDefinition> types) : base(location)
+    public IReadOnlyList<BoundModule> Dependencies => Imports.Keys.ToList();
+
+    public BoundModule(
+        Location? location,
+        ModuleIdentity identity,
+        IReadOnlyDictionary<BoundModule,
+            IReadOnlyList<BoundTypeDefinition>> imports,
+        IEnumerable<BoundTypeDefinition> types
+    ) : base(location)
     {
         Identity = identity;
         Types = types.ToList();
-        Dependencies = dependencies.ToList();
+        Imports = imports;
     }
 
     public bool TryGetSymbol(string symbolName, [NotNullWhen(true)] out BoundTypeDefinition? type)

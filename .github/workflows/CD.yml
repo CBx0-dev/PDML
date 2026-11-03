@@ -201,7 +201,7 @@ jobs:
           gh release create "v$VERSION" assets/* \
             --repo "$GITHUB_REPOSITORY" \
             --target "$GITHUB_SHA" \
-            --title "PDML v$VERSION"
+            --title "PDML v$VERSION" \
             --generate-notes \
             --latest \
             --draft

@@ -1,7 +1,7 @@
 {
-    "name": "pdml-language",
+    "name": "pdmllp",
     "private": true,
-    "displayName": "PDML",
+    "displayName": "PDML Language Pack",
     "version": "1.0.0",
     "description": "VS Code extension for the PDML Language",
     "author": "CBx0",

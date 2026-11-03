@@ -3,22 +3,17 @@ name: CD
 on:
   workflow_dispatch:
     inputs:
-      kind:
+      type:
         description: "release = NuGet packages, LSP, compiler CLI. vscode = extension only (own version)"
           type: choice
           options:
             - release
             - vscode
           required: true
-      
       version:
         description: "Version to use for the package (e.g 1.2.3)"
         type: string
         required: true
-
-concurrency:
-  group: cd
-  cancel-in-progress: false
 
 permissions:
   contents: read
@@ -30,7 +25,7 @@ env:
 
 jobs:
   test:
-    if: ${{ inputs.version == 'release' }}
+    if: ${{ inputs.type == 'release' }}
     runs-on: ubuntu-latest
     
     steps:
@@ -212,7 +207,7 @@ jobs:
             --draft
 
 vscode:
-  if: ${{ inputs.kind == 'vscode' }}
+  if: ${{ inputs.type == 'vscode' }}
   runs-on: ubuntu-latest
   permissions:
     contents: write

@@ -58,17 +58,27 @@ public sealed class Binder
             return;
         }
 
+        HashSet<BoundModule> seenDependencies = new HashSet<BoundModule>();
         foreach (ImportMember import in _module.Imports)
         {
-            BindImport(import);
+            BindImport(seenDependencies, import);
         }
     }
 
-    private void BindImport(ImportMember import)
+    private void BindImport(HashSet<BoundModule> seenDependencies, ImportMember import)
     {
         string relativePath = TokenUtils.NormalizeString(import.Locator);
-        string absoultePath = Path.GetFullPath(Path.Combine(_projectRoot, relativePath));
-        BoundModule module = _dependencies.First(module => module.Identity.FilePath == absoultePath);
+        string absolutePath = Path.GetFullPath(Path.Combine(_projectRoot, relativePath));
+        BoundModule module = _dependencies.First(module => module.Identity.FilePath == absolutePath);
+
+        if (!seenDependencies.Add(module))
+        {
+            _diagnostics.Report(
+                BindingError.DoubleImport,
+                import.Location,
+                relativePath
+            );
+        }
 
         foreach (Token symbol in import.Symbols)
         {

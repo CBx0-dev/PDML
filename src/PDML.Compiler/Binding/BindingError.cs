@@ -85,6 +85,15 @@ public static class BindingError
         ArgumentCount = 2
     };
 
+    public static readonly DiagnosticDescriptor DoubleImport = new DiagnosticDescriptor
+    {
+        Code = (int)Code.DoubleImport,
+        Step = CompilationStep.Binding,
+        Severity = DiagnosticSeverity.Warning,
+        MessageFormat = "Module '{0}' is already imported. Consider combining imports.",
+        ArgumentCount = 1
+    };
+
     public enum Code
     {
         DuplicateName = 3000,
@@ -95,6 +104,7 @@ public static class BindingError
         CircularInheritance,
         DuplicateProperty,
         DuplicatePropertyComposition,
-        UnknownImport
+        UnknownImport,
+        DoubleImport
     }
 }

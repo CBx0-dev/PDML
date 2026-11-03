@@ -28,7 +28,7 @@ public static class LexingError
         Step = CompilationStep.Lexing,
         Severity =DiagnosticSeverity.Error,
         MessageFormat = "Unterminated string",
-        ArgumentCount = 1
+        ArgumentCount = 0
     };
 
     public enum Code

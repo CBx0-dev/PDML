@@ -3,8 +3,8 @@ using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using PDML.Compiler;
-using PDML.Compiler.Binding.Nodes;
 using PDML.Compiler.Common;
+using PDML.Generator.Abstractions;
 using PdmlCompilation = PDML.Compiler.Compilation;
 
 namespace PDML.Generator.CSharp.Roslyn;
@@ -62,26 +62,22 @@ public sealed class PdmlAdapterGenerator : IIncrementalGenerator
 
                 foreach (Diagnostic diagnostic in (RoslynDiagnosticBag)compilation.Diagnostics)
                 {
-                    productionContext.ReportDiagnostic(diagnostic);   
+                    productionContext.ReportDiagnostic(diagnostic);
                 }
 
-                CSharpGenerator generator = new CSharpGenerator();
-                CSharpGeneratorSettings settings = new CSharpGeneratorSettings
+                CSharpGenerator generator = new CSharpGenerator(
+                    new CSharpGeneratorSettings
+                    {
+                        RootNamespace = files[0].Namespace
+                    }
+                );
+
+                OutputBuilder output = generator.Generate(compilation.Modules);
+                foreach (OutputFile file in output.GetFiles())
                 {
-                    RootNamespace = files[0].Namespace
-                };
-
-                StringWriter writer = new StringWriter();
-                foreach (BoundModule module in compilation.Modules)
-                {
-                    writer.GetStringBuilder().Clear();
-                    generator.GenerateModule(writer, settings, module);
-
-                    string hintName = module.Identity.ToString() + ".g.cs";
-
                     productionContext.AddSource(
-                        hintName,
-                        SourceText.From(writer.ToString(), Encoding.UTF8)
+                        file.LocalName,
+                        SourceText.From(file.Content, Encoding.UTF8)
                     );
                 }
             }

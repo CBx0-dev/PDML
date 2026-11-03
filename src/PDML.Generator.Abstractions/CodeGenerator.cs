@@ -1,41 +1,33 @@
 using PDML.Compiler.Binding.Nodes;
-using PDML.Compiler.Binding.Nodes.Members;
-using PDML.Compiler.Binding.Types;
 
 namespace PDML.Generator.Abstractions;
 
 public abstract class CodeGenerator
 {
-    public abstract string Name { get; }
-    public abstract string Key { get; }
     public abstract Type SettingsType { get; }
 
-    public abstract void GenerateModule(TextWriter writer, GeneratorSettings settings, BoundModule module);
+    public abstract OutputBuilder Generate(IReadOnlyList<BoundModule> modules);
 }
 
 public abstract class CodeGenerator<TSettings> : CodeGenerator
     where TSettings : GeneratorSettings
 {
-    public sealed override Type SettingsType { get; } = typeof(TSettings);
+    protected TSettings _settings;
 
-    public override void GenerateModule(TextWriter writer, GeneratorSettings settings, BoundModule module)
-        => GenerateModule(writer, (TSettings)settings, module);
+    public override sealed Type SettingsType { get; } = typeof(TSettings);
 
-    public virtual void GenerateModule(TextWriter writer, TSettings settings, BoundModule module)
+    protected CodeGenerator(TSettings settings)
     {
-        foreach (BoundTypeDefinition type in module.Types)
-        {
-            if (type.IsVirtual)
-            {
-                continue;
-            }
-            
-            GenerateTypeDefinition(writer, settings, type);
-            writer.WriteLine();
-        }
+        _settings = settings;
     }
 
-    protected abstract void GenerateTypeDefinition(TextWriter writer, TSettings settings, BoundTypeDefinition type);
+    public override sealed OutputBuilder Generate(IReadOnlyList<BoundModule> modules)
+    {
+        OutputBuilder output = new OutputBuilder();
+        Generate(output, modules);
 
-    protected abstract void GenerateTypeRef(TextWriter writer, TSettings settings, TypeRef typeRef);
+        return output;
+    }
+
+    protected abstract void Generate(OutputBuilder output, IReadOnlyList<BoundModule> modules);
 }

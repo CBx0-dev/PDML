@@ -5,11 +5,11 @@ on:
     inputs:
       type:
         description: "release = NuGet packages, LSP, compiler CLI. vscode = extension only (own version)"
-          type: choice
-          required: true
-          options:
-            - release
-            - vscode
+        type: choice
+        required: true
+        options:
+          - release
+          - vscode
       version:
         description: "Version to use for the package (e.g 1.2.3)"
         type: string
@@ -41,7 +41,7 @@ jobs:
             echo "::error::version $VERSION already exists"
             exit 1
           fi
-          if [ "${{ github.ref_name }}" != "${{ github.event.repository.default_branch }}" }
+          if [ "${{ github.ref_name }}" != "${{ github.event.repository.default_branch }}" ]
           then
             echo "::error::Releases can only be cut from '${{ github.event.repository.default_branch }}'."
             exit 1
@@ -161,7 +161,7 @@ jobs:
           set -euo pipefail
           mkdir -p dist
           cp  "out/lsp/PDML.Plugin.LSP${{ matrix.ext }}" "dist/pdml-lsp-${{ matrix.rid }}${{ matrix.ext }}"
-          if [ "${{ matix.archive }}" = "zip" ]
+          if [ "${{ matrix.archive }}" = "zip" ]
           then
             (cd out/cli && zip -qr "$GITHUB_WORKSPACE/dist/pdml-cli-${{ matrix.rid }}.zip" .)
           else
@@ -203,7 +203,7 @@ jobs:
             --target "$GITHUB_SHA" \
             --title "PDML v$VERSION"
             --generate-notes \
-            --latest
+            --latest \
             --draft
 
   vscode:
@@ -213,7 +213,6 @@ jobs:
       contents: write
     env:
       GH_TOKEN: ${{ github.token }}
-      VCSE_PAT: ${{ secrets.VCSE_PAT }}
     
     steps:
       - uses: actions/checkout@v4
@@ -233,8 +232,6 @@ jobs:
           echo "::error::Publishing is only allowed from '${{ github.event.repository.default_branch }}'."; exit 1
           fi
           
-          [ -n "$VSCE_PAT" ] || { echo "::error::Secret VSCE_PAT is not configured."; exit 1; }
-
       - uses: pnpm/action-setup@v4
         with:
           package_json_file: src/PDML.Plugin.VSCode/package.json
@@ -257,7 +254,8 @@ jobs:
           retention-days: 30
 
       - name: Publish & Marketplace
-        run: npx --yes @vscode/vsce publish --oicd --packagePath out/pdml-$VERSION.vsix
+        working-directory: src/PDML.Plugin.VSCode
+        run: npx --yes @vscode/vsce publish --oidc --packagePath out/pdml-$VERSION.vsix
 
       - name: Tag extension version
         run: |

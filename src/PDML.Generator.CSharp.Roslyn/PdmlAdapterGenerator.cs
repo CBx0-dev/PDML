@@ -1,5 +1,4 @@
-﻿using System.Collections.Immutable;
-using System.Text;
+﻿using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using PDML.Compiler;
@@ -17,36 +16,35 @@ public sealed class PdmlAdapterGenerator : IIncrementalGenerator
         IncrementalValueProvider<string> targetNamespace = context.AnalyzerConfigOptionsProvider
             .Select(static (provider, _) =>
             {
-                provider.GlobalOptions.TryGetValue(
-                    "build_property.PDMLNamespace",
-                    out var ns);
-
-                return ns ?? string.Empty;
-            });
-
-        IncrementalValuesProvider<InputFile> inputs = context.AdditionalTextsProvider
-            .Combine(targetNamespace)
-            .Where(static pair => pair.Left.Path.EndsWith(".pdml"))
-            .Select(static (pair, cancellationToken) =>
-            {
-                AdditionalText file = pair.Left;
-                string? targetNamespace = pair.Right;
-
-                return new InputFile
+                provider.GlobalOptions.TryGetValue("build_property.PDMLNamespace", out string? ns);
+                if (string.IsNullOrWhiteSpace(ns))
                 {
-                    Namespace = targetNamespace,
-                    Path = file.Path,
-                    Content = file.GetText(cancellationToken)?.ToString()
-                };
+                    throw new InvalidOperationException("PDMLNamespace is not set or is empty. Add one in your PropertyGroup");
+                }
+
+                return ns;
             });
 
-        IncrementalValueProvider<ImmutableArray<InputFile>> projectFiles = inputs.Collect();
+        IncrementalValueProvider<ProjectInfo> project = context.AdditionalTextsProvider
+            .Where(static file => file.Path.EndsWith(".pdml"))
+            .Select(static (file, cancellationToken) => new InputFile
+            {
+                Path = file.Path,
+                Content = file.GetText(cancellationToken)?.ToString()
+            })
+            .Collect()
+            .Combine(targetNamespace)
+            .Select(static (pair, _) => new ProjectInfo
+            {
+                RootNamespace = pair.Right,
+                Files = pair.Left
+            });
 
         context.RegisterSourceOutput(
-            projectFiles,
-            static (productionContext, files) =>
+            project,
+            static (productionContext, project) =>
             {
-                InputFile[] validFiles = files
+                InputFile[] validFiles = project.Files
                     .Where(static file => file.Content is not null)
                     .ToArray();
 
@@ -68,7 +66,7 @@ public sealed class PdmlAdapterGenerator : IIncrementalGenerator
                 CSharpGenerator generator = new CSharpGenerator(
                     new CSharpGeneratorSettings
                     {
-                        RootNamespace = files[0].Namespace
+                        RootNamespace = project.RootNamespace
                     }
                 );
 

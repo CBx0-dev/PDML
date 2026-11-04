@@ -47,7 +47,8 @@
 		<None Remove="bin/Debug/netstandard2.0/PDML.Generator.CSharp.dll" />
         <None Include="$(OutputPath)/PDML.Generator.CSharp.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
 
-		<None Include="PDML.Generator.CSharp.Roslyn.props" Pack="true" PackagePath="build/PDML.Generator.CSharp.Roslyn.props"></None>
+		<None Include="PDML.Generator.CSharp.Roslyn.props" Pack="true" PackagePath="build/PDML.Generator.CSharp.Roslyn.props" />
+		<None Include="PDML.Generator.CSharp.Roslyn.props" Pack="true" PackagePath="buildTransitive/PDML.Generator.CSharp.Roslyn.props" />
     </ItemGroup>
 	
 </Project>

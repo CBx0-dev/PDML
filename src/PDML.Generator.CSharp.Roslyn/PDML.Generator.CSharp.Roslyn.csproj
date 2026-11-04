@@ -22,21 +22,33 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" PrivateAssets="all"/>
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" PrivateAssets="all" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="../PDML.Compatibility/PDML.Compatibility.csproj" PrivateAssets="all" OutputItemType="Analyzer"/>
-        <ProjectReference Include="../PDML.Compiler/PDML.Compiler.csproj" PrivateAssets="all" OutputItemType="Analyzer"/>
-        <ProjectReference Include="../PDML.Generator.Abstractions/PDML.Generator.Abstractions.csproj" PrivateAssets="all" OutputItemType="Analyzer"/>
-        <ProjectReference Include="../PDML.Generator.CSharp/PDML.Generator.CSharp.csproj" PrivateAssets="all" OutputItemType="Analyzer"/>
+        <ProjectReference Include="../PDML.Compatibility/PDML.Compatibility.csproj" PrivateAssets="all" OutputItemType="Analyzer" />
+        <ProjectReference Include="../PDML.Compiler/PDML.Compiler.csproj" PrivateAssets="all" OutputItemType="Analyzer" />
+        <ProjectReference Include="../PDML.Generator.Abstractions/PDML.Generator.Abstractions.csproj" PrivateAssets="all" OutputItemType="Analyzer" />
+        <ProjectReference Include="../PDML.Generator.CSharp/PDML.Generator.CSharp.csproj" PrivateAssets="all" OutputItemType="Analyzer" />
     </ItemGroup>
 
-    <ItemGroup>
-        <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false"/>
-        <None Include="$(OutputPath)\PDML.Compatibility.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false"/>
-        <None Include="$(OutputPath)\PDML.Compiler.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false"/>
-        <None Include="$(OutputPath)\PDML.Generator.Abstractions.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false"/>
-        <None Include="$(OutputPath)\PDML.Generator.CSharp.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false"/>
+	<ItemGroup>
+        <None Include="$(OutputPath)/$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+		
+        <None Remove="bin/Debug/netstandard2.0/PDML.Compatibility.dll" />
+        <None Include="$(OutputPath)/PDML.Compatibility.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+        
+		<None Remove="bin/Debug/netstandard2.0/PDML.Compiler.dll" />
+        <None Include="$(OutputPath)/PDML.Compiler.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+        
+		<None Remove="bin/Debug/netstandard2.0/PDML.Generator.Abstractions.dll" />
+        <None Include="$(OutputPath)/PDML.Generator.Abstractions.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+        
+		<None Remove="bin/Debug/netstandard2.0/PDML.Generator.CSharp.dll" />
+        <None Include="$(OutputPath)/PDML.Generator.CSharp.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+
+		<None Include="PDML.Generator.CSharp.Roslyn.props" Pack="true" PackagePath="build/PDML.Generator.CSharp.Roslyn.props" />
+		<None Include="PDML.Generator.CSharp.Roslyn.props" Pack="true" PackagePath="buildTransitive/PDML.Generator.CSharp.Roslyn.props" />
     </ItemGroup>
+	
 </Project>

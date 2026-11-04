@@ -2,6 +2,7 @@
 
 	<ItemGroup>
 		<CompilerVisibleProperty Include="PDMLNamespace" />
+		<AdditionalFiles Include="**/*.pdml" />
 	</ItemGroup>
 
 </Project>

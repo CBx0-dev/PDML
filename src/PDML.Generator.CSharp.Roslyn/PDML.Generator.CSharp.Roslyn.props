@@ -1,0 +1,7 @@
+<Project>
+
+	<ItemGroup>
+		<CompilerVisibleProperty Include="PDMLNamespace" />
+	</ItemGroup>
+
+</Project>

@@ -24,7 +24,7 @@ public sealed class TypeDefinitionTypeRef : TypeRef
         }
 
         return Definition == other.Definition;
-    }
+    }   
 
     public override int GetHashCode() => Definition.GetHashCode();
 }

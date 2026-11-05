@@ -94,6 +94,15 @@ public static class BindingError
         ArgumentCount = 1
     };
 
+    public static readonly DiagnosticDescriptor WrongGenericCount = new DiagnosticDescriptor
+    {
+        Code = (int)Code.WrongGenericCount,
+        Step = CompilationStep.Binding,
+        Severity = DiagnosticSeverity.Error,
+        MessageFormat = "Type '{0}' expects '{1}' generics, but got {2}",
+        ArgumentCount = 3
+    };
+
     public enum Code
     {
         DuplicateName = 3000,
@@ -105,6 +114,7 @@ public static class BindingError
         DuplicateProperty,
         DuplicatePropertyComposition,
         UnknownImport,
-        DoubleImport
+        DoubleImport,
+        WrongGenericCount
     }
 }

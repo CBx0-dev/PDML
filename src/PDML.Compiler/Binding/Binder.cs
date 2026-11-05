@@ -367,7 +367,49 @@ public sealed class Binder
 
     private TypeRef? FindType(TypeSignature target, bool allowVirtual)
     {
+        List<TypeRef> generics = new List<TypeRef>();
+        if (target.Generics is not null)
+        {
+            foreach (TypeSignature generic in target.Generics)
+            {
+                TypeRef? type = FindType(generic, false);
+                if (type is not null)
+                {
+                    generics.Add(type);
+                }
+            }
+        }
+
         string name = target.Name.Value;
+        if (name == "Array")
+        {
+            if (generics.Count != 1)
+            {
+                _diagnostics.Report(BindingError.WrongGenericCount, target.Location, name, 1, generics.Count);
+                return null;
+            }
+
+            return new ArrayTypeRef(generics[0]);
+        } 
+        if (name == "Record")
+        {
+            if (generics.Count != 2)
+            {
+                _diagnostics.Report(BindingError.WrongGenericCount, target.Location, name, 2, generics.Count);
+                return null;
+            }
+
+            return new RecordTypeRef(generics[0], generics[1]);
+        }
+
+        if (generics.Count != 0)
+        {
+            // Later we want that non-intrinsic types can define generics for themself.
+            // For now we just enforce it that is has to be zero here.
+            _diagnostics.Report(BindingError.WrongGenericCount, target.Location, 0, generics.Count);
+            return null;
+        }
+
         switch (name)
         {
             case "uint8":
@@ -412,12 +454,6 @@ public sealed class Binder
 
         return new TypeDefinitionTypeRef(definition);
 
-    }
-
-    private TypeRef? ExecuteTypeFunction()
-    {
-        // TODO implement special functions like Pick or Omit
-        return null;
     }
 
     public static BoundModule BindModule(string projectRoot, DiagnosticBag diagnostics, Module module, BoundModule[] dependencies)

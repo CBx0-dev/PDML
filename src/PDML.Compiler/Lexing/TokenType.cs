@@ -11,6 +11,7 @@ public enum TokenType
 
     TypeKeyword,
     VirtualKeyword,
+    AliasKeyword,
     ImportKeyword,
     FromKeyword,
 

@@ -143,6 +143,7 @@ public sealed class Lexer
         {
             "type" => TokenType.TypeKeyword,
             "virtual" => TokenType.VirtualKeyword,
+            "alias" => TokenType.AliasKeyword,
             "import" => TokenType.ImportKeyword,
             "from" => TokenType.FromKeyword,
             _ => TokenType.Identifier,

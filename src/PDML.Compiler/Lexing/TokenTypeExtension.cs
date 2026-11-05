@@ -22,6 +22,8 @@ public static class TokenTypeExtension
                 return "type";
             case TokenType.VirtualKeyword:
                 return "virtual";
+            case TokenType.AliasKeyword:
+                return "alias";
             case TokenType.ImportKeyword:
                 return "import";
             case TokenType.FromKeyword:

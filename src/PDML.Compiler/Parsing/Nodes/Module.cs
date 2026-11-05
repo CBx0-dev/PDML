@@ -9,6 +9,7 @@ public record Module : Node
     public IEnumerable<ImportMember> Imports => Members.OfType<ImportMember>();
     public IEnumerable<TypeDefinitionMember> TypeDefinitions => Members.OfType<TypeDefinitionMember>();
     public IEnumerable<VirtualTypeDefinitionMember> VirtualTypeDefinitions => Members.OfType<VirtualTypeDefinitionMember>();
+    public IEnumerable<AliasDefinitionMember> AliasDefinitions => Members.OfType<AliasDefinitionMember>();
 
     public override required Location Location { get; init; }
 

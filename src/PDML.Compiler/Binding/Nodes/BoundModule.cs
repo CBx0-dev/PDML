@@ -9,6 +9,7 @@ public sealed class BoundModule : BoundNode
     public ModuleIdentity Identity { get; internal set; }
     public IReadOnlyDictionary<BoundModule, IReadOnlyList<BoundTypeDefinition>> Imports { get; internal set; }
     public IReadOnlyList<BoundTypeDefinition> Types { get; internal set; }
+    public IReadOnlyList<BoundAliasTypeDefinition> Aliases { get; internal set; }
 
     public IReadOnlyList<BoundModule> Dependencies => Imports.Keys.ToList();
 
@@ -16,18 +17,28 @@ public sealed class BoundModule : BoundNode
         Location? location,
         ModuleIdentity identity,
         IReadOnlyDictionary<BoundModule,
-            IReadOnlyList<BoundTypeDefinition>> imports,
-        IEnumerable<BoundTypeDefinition> types
+        IReadOnlyList<BoundTypeDefinition>> imports,
+        IEnumerable<BoundTypeDefinition> types,
+        IEnumerable<BoundAliasTypeDefinition> aliases
     ) : base(location)
     {
         Identity = identity;
-        Types = types.ToList();
         Imports = imports;
+        Types = types.ToList();
+        Aliases = aliases.ToList();
     }
 
-    public bool TryGetSymbol(string symbolName, [NotNullWhen(true)] out BoundTypeDefinition? type)
+    public bool TryGetSymbol(string symbolName, out BoundTypeDefinition? type, out BoundAliasTypeDefinition? alias)
     {
+        type = null;
+        alias = null;
+
         type = Types.FirstOrDefault(type => type.Name == symbolName);
-        return type is not null;
+        if (type is not null)
+        {
+            alias = Aliases.FirstOrDefault(alias => alias.Name == symbolName);
+        }
+
+        return type is not null || alias is not null;
     }
 }

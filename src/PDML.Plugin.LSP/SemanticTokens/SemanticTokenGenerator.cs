@@ -29,6 +29,11 @@ public sealed class SemanticTokenGenerator
             VisitVirtualTypeDefinitionMember(definition);
         }
 
+        foreach (AliasDefinitionMember definition in module.AliasDefinitions)
+        {
+            VisitAliasDefinitionMember(definition);
+        }
+
         return _tokens
             .OrderBy(token => token.Location.Start.Position)
             .ToList();
@@ -92,6 +97,21 @@ public sealed class SemanticTokenGenerator
         ));
 
         VisitTypeDefinitionItems(definition.Items);
+    }
+
+    private void VisitAliasDefinitionMember(AliasDefinitionMember definition)
+    {
+        _tokens.Add(new SemanticToken(
+            definition.AliasKeyword.Location,
+            SemanticTokenType.Keyword
+        ));
+        _tokens.Add(new SemanticToken(
+            definition.Name.Location,
+            SemanticTokenType.Type,
+            SemanticTokenModifier.Declaration
+        ));
+
+        VisitTypeSignature(definition.AliasingType);
     }
 
     private void VisitTypeDefinitionItems(DelimitedList<TypeDefinitionItem, Token> items)

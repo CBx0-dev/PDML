@@ -202,7 +202,6 @@ jobs:
             --repo "$GITHUB_REPOSITORY" \
             --target "$GITHUB_SHA" \
             --title "PDML v$VERSION" \
-            --generate-notes \
             --latest \
             --draft
 

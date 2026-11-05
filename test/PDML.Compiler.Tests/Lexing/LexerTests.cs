@@ -119,6 +119,9 @@ public sealed class LexerTests
     [Theory]
     [InlineData("type", TokenType.TypeKeyword)]
     [InlineData("virtual", TokenType.VirtualKeyword)]
+    [InlineData("alias", TokenType.AliasKeyword)]
+    [InlineData("import", TokenType.ImportKeyword)]
+    [InlineData("from", TokenType.FromKeyword)]
     public void NextToken_WithIdentifier_ReturnsKeywordToken(string symbol, TokenType expectedType)
     {
         (Lexer lexer, DiagnosticBag diagnostics) = CreateLexer(symbol);

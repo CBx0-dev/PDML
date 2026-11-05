@@ -76,6 +76,11 @@ public sealed class ModuleVisitor : ModuleVisitorBase
         _writer.WriteLine();
     }
 
+    protected override void Visit(BoundAliasTypeDefinition type)
+    {
+        // Doing nothing here, because C# has no aliases.
+    }
+
     protected override void Visit(IntrinsicTypeRef type)
     {
         switch (type.Type)
@@ -139,6 +144,13 @@ public sealed class ModuleVisitor : ModuleVisitorBase
     protected override void Visit(TypeDefinitionTypeRef type)
     {
         _writer.Write(type.Definition.Name);
+    }
+    
+    protected override void Visit(AliasDefintionTypeRef alias)
+    {
+        // We just emit the aliasing type,
+        // because C# has no real alias system
+        Visit(alias.Definition.AliasingType);
     }
 
     protected override void Visit(ArrayTypeRef type)

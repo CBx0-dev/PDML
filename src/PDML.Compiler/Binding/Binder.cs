@@ -15,7 +15,8 @@ public sealed class Binder
     private readonly DiagnosticBag _diagnostics;
     private readonly Module _module;
     private readonly BoundModule[] _dependencies;
-    private readonly Dictionary<BoundModule, List<BoundTypeDefinition>> _importedTypes;
+    private readonly Dictionary<BoundModule, List<BoundNode>> _importedTypes;
+    private readonly List<BoundAliasTypeDefinition> _aliases;
     private readonly Dictionary<BoundTypeDefinition, Dictionary<string, BoundTypeDefinitionProperty>> _types;
     private readonly Dictionary<string, Location> _seenNames;
 
@@ -25,7 +26,8 @@ public sealed class Binder
         _diagnostics = diagnostics;
         _module = module;
         _dependencies = dependencies;
-        _importedTypes = new Dictionary<BoundModule, List<BoundTypeDefinition>>();
+        _importedTypes = new Dictionary<BoundModule, List<BoundNode>>();
+        _aliases = new List<BoundAliasTypeDefinition>();
         _types = new Dictionary<BoundTypeDefinition, Dictionary<string, BoundTypeDefinitionProperty>>();
         _seenNames = new Dictionary<string, Location>();
     }
@@ -34,6 +36,7 @@ public sealed class Binder
     {
         BindImports();
         BindTypeDefinitionHeaders();
+        BindTypeAliases();
         BindTypeDefinitionInheritances();
         BindTypeDefinitionBasicBodies();
         BindTypeCompositionBodies();
@@ -47,7 +50,8 @@ public sealed class Binder
                 pair => pair.Key,
                 pair => (IReadOnlyList<BoundTypeDefinition>)pair.Value
             ),
-            _types.Keys.ToArray()
+            _types.Keys.ToArray(),
+            _aliases
         );
     }
 
@@ -83,10 +87,22 @@ public sealed class Binder
         foreach (Token symbol in import.Symbols)
         {
             string symbolName = symbol.Value;
-            if (!module.TryGetSymbol(symbolName, out BoundTypeDefinition? importedType))
+            if (!module.TryGetSymbol(symbolName, out BoundTypeDefinition? type, out BoundAliasTypeDefinition? alias))
             {
                 _diagnostics.Report(BindingError.UnknownImport, symbol.Location, symbolName, relativePath);
                 continue;
+            }
+
+            BoundNode importedType;
+            if (type is not null)
+            {
+                importedType = type;
+            } else if (alias is not null)
+            {
+                importedType = alias;
+            } else
+            {
+                throw new InvalidOperationException($"'{nameof(BoundModule.TryGetSymbol)}' cannot return true and has all symbols set to null");
             }
 
             if (_seenNames.TryGetValue(symbolName, out Location? previousLocation))
@@ -96,7 +112,7 @@ public sealed class Binder
             }
 
             _seenNames.Add(symbolName, symbol.Location);
-            if (_importedTypes.TryGetValue(module, out List<BoundTypeDefinition>? existingImports))
+            if (_importedTypes.TryGetValue(module, out List<BoundNode>? existingImports))
             {
                 existingImports.Add(importedType);
                 continue;
@@ -156,6 +172,39 @@ public sealed class Binder
         BoundTypeDefinition type = new BoundTypeDefinition(definition.Name.Location, name, null, body, false);
 
         _types.Add(type, body);
+    }
+
+    private void BindTypeAliases()
+    {
+        if (_diagnostics.HasErrors)
+        {
+            return;
+        }
+
+        foreach (AliasDefinitionMember definition in _module.AliasDefinitions)
+        {
+            BindAliasDefinition(definition);
+        }
+    }
+
+    private void BindAliasDefinition(AliasDefinitionMember definition)
+    {
+        string name = definition.Name.Value;
+        if (_seenNames.TryGetValue(name, out Location? previousDeclaration))
+        {
+            _diagnostics.Report(BindingError.DuplicateName, definition.Name.Location, previousDeclaration, name);
+            return;
+        }
+
+        _seenNames.Add(name, definition.Name.Location);
+
+        TypeRef? aliasingType = FindType(definition.AliasingType, false);
+        if (aliasingType is null)
+        {
+            return;
+        }
+
+        _aliases.Add(new BoundAliasTypeDefinition(definition.Name.Location, name, aliasingType));
     }
 
     private void BindTypeDefinitionInheritances()
@@ -436,24 +485,34 @@ public sealed class Binder
                 return IntrinsicTypeRef.String;
         }
 
+
+        BoundAliasTypeDefinition? aliasDefinition = _aliases.FirstOrDefault(t => t.Name == name);
+        if (aliasDefinition is not null)
+        {
+            return new AliasDefintionTypeRef(aliasDefinition);
+        }
+        
         BoundTypeDefinition? definition = _types.Keys
-            .Concat(_importedTypes.Values.SelectMany(l => l))
+            .Concat(
+                _importedTypes.Values
+                    .SelectMany(l => l)
+                    .OfType<BoundTypeDefinition>()
+            )
             .FirstOrDefault(t => t.Name == name);
 
-        if (definition is null)
+        if (definition is not null)
         {
-            _diagnostics.Report(BindingError.UnknownType, target.Name.Location, target.Name.Value);
-            return null;
+            if (!allowVirtual && definition.IsVirtual)
+            {
+                _diagnostics.Report(BindingError.VirtualTypeNotAllowed, target.Name.Location);
+                return null;
+            }
+
+            return new TypeDefinitionTypeRef(definition);
         }
 
-        if (!allowVirtual && definition.IsVirtual)
-        {
-            _diagnostics.Report(BindingError.VirtualTypeNotAllowed, target.Name.Location);
-            return null;
-        }
-
-        return new TypeDefinitionTypeRef(definition);
-
+        _diagnostics.Report(BindingError.UnknownType, target.Name.Location, target.Name.Value);
+        return null;
     }
 
     public static BoundModule BindModule(string projectRoot, DiagnosticBag diagnostics, Module module, BoundModule[] dependencies)

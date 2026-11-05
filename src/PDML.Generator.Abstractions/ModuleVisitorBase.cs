@@ -10,6 +10,8 @@ public abstract class ModuleVisitorBase
 
     protected abstract void Visit(BoundTypeDefinition type);
 
+    protected abstract void Visit(BoundAliasTypeDefinition alias);
+
     protected void Visit(TypeRef type)
     {
         switch (type)
@@ -22,6 +24,10 @@ public abstract class ModuleVisitorBase
                 Visit(typeDefinitionTypeRef);
                 break;
 
+            case AliasDefintionTypeRef aliasDefintionTypeRef:
+                Visit(aliasDefintionTypeRef);
+                break;
+            
             case ArrayTypeRef arrayTypeRef: 
                 Visit(arrayTypeRef);
                 break;
@@ -39,6 +45,8 @@ public abstract class ModuleVisitorBase
 
     protected abstract void Visit(TypeDefinitionTypeRef type);
 
+    protected abstract void Visit(AliasDefintionTypeRef type);
+  
     protected abstract void Visit(ArrayTypeRef type);
 
     protected abstract void Visit(RecordTypeRef type);

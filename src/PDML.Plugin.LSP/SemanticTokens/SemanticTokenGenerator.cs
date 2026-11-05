@@ -173,5 +173,13 @@ public sealed class SemanticTokenGenerator
             signature.Name.Location,
             SemanticTokenType.Type
         ));
+
+        if (signature.Generics is not null)
+        {
+            foreach (TypeSignature generic in signature.Generics)
+            {
+                VisitTypeSignature(generic);
+            }
+        }
     }
 }

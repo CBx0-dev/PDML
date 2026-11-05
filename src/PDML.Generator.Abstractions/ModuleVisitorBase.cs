@@ -27,6 +27,14 @@ public abstract class ModuleVisitorBase
             case AliasDefintionTypeRef aliasDefintionTypeRef:
                 Visit(aliasDefintionTypeRef);
                 break;
+            
+            case ArrayTypeRef arrayTypeRef: 
+                Visit(arrayTypeRef);
+                break;
+
+            case RecordTypeRef recordTypeRef:
+                Visit(recordTypeRef);
+                break;
 
             default:
                 throw new InvalidOperationException("Unknown type reference kind");
@@ -38,4 +46,8 @@ public abstract class ModuleVisitorBase
     protected abstract void Visit(TypeDefinitionTypeRef type);
 
     protected abstract void Visit(AliasDefintionTypeRef type);
+  
+    protected abstract void Visit(ArrayTypeRef type);
+
+    protected abstract void Visit(RecordTypeRef type);
 }

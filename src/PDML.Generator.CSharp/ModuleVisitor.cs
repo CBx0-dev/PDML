@@ -145,11 +145,29 @@ public sealed class ModuleVisitor : ModuleVisitorBase
     {
         _writer.Write(type.Definition.Name);
     }
-
+    
     protected override void Visit(AliasDefintionTypeRef alias)
     {
         // We just emit the aliasing type,
         // because C# has no real alias system
         Visit(alias.Definition.AliasingType);
+    }
+
+    protected override void Visit(ArrayTypeRef type)
+    {
+        Visit(type.ElementType);
+        _writer.Write("[]");
+    }
+
+    protected override void Visit(RecordTypeRef type)
+    {
+        const string TypeNamespace = "System.Collections.Generic";
+
+        _writer.Write(TypeNamespace);
+        _writer.Write("Dictionary<");
+        Visit(type.KeyType);
+        _writer.Write(", ");
+        Visit(type.ValueType);
+        _writer.Write('>');
     }
 }

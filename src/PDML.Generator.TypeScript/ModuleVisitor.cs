@@ -122,9 +122,24 @@ public sealed class ModuleVisitor : ModuleVisitorBase
     {
         _writer.Write(type.Definition.Name.ToPascalCase());
     }
-
+    
     protected override void Visit(AliasDefintionTypeRef alias)
     {
         _writer.Write(alias.Definition.Name.ToPascalCase());
+    }
+
+    protected override void Visit(ArrayTypeRef type)
+    {
+        Visit(type.ElementType);
+        _writer.Write("[]");
+    }
+
+    protected override void Visit(RecordTypeRef type)
+    {
+        _writer.Write("Record<");
+        Visit(type.KeyType);
+        _writer.Write(", ");
+        Visit(type.ValueType);
+        _writer.Write('>');
     }
 }

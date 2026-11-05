@@ -30,7 +30,7 @@
             "patterns": [
                 {
                     "name": "keyword.control.pdml",
-                    "match": "\\b(import|from|type|virtual)\\b"
+                    "match": "\\b(import|from|type|virtual|alias)\\b"
                 }
             ]
         },

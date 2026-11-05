@@ -45,6 +45,11 @@ public sealed class ModuleVisitor : ModuleVisitorBase
         {
             Visit(type);
         }
+
+        foreach (BoundAliasTypeDefinition alias in module.Aliases)
+        {
+            Visit(alias);
+        }
     }
 
     protected override void Visit(BoundTypeDefinition type)
@@ -70,6 +75,15 @@ public sealed class ModuleVisitor : ModuleVisitorBase
 
         _writer.WriteLine('}');
         _writer.WriteLine();
+    }
+
+    protected override void Visit(BoundAliasTypeDefinition type)
+    {
+        _writer.Write("export type ");
+        _writer.Write(type.Name.ToPascalCase());
+        _writer.Write(" = ");
+        Visit(type.AliasingType);
+        _writer.WriteLine(';');
     }
 
     protected override void Visit(IntrinsicTypeRef type)
@@ -107,5 +121,10 @@ public sealed class ModuleVisitor : ModuleVisitorBase
     protected override void Visit(TypeDefinitionTypeRef type)
     {
         _writer.Write(type.Definition.Name.ToPascalCase());
+    }
+
+    protected override void Visit(AliasDefintionTypeRef alias)
+    {
+        _writer.Write(alias.Definition.Name.ToPascalCase());
     }
 }

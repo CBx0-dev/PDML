@@ -75,6 +75,8 @@ public sealed class Parser
                 return ParseTypeDefinitionMember();
             case TokenType.VirtualKeyword:
                 return ParseVirtualDefinitionMember();
+            case TokenType.AliasKeyword:
+                return ParseAliasDefinitionMember();
 
         }
 
@@ -234,6 +236,25 @@ public sealed class Parser
         {
             Location = type.Location,
             Type = type
+        };
+    }
+
+    private Member ParseAliasDefinitionMember()
+    {
+        Token aliasKeyword = Match(TokenType.AliasKeyword);
+        Token name = Match(TokenType.Identifier);
+        Token equal = Match(TokenType.Equals);
+        TypeSignature aliasingType = ParseTypeSignature();
+        Token semicolon = Match(TokenType.Semicolon);
+
+        return new AliasDefinitionMember
+        {
+            Location = Location.Merge(aliasingType.Location, semicolon.Location),
+            AliasKeyword= aliasKeyword,
+            Name = name,
+            Equal = equal,
+            AliasingType = aliasingType,
+            Semicolon = semicolon
         };
     }
 

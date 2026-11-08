@@ -1,5 +1,6 @@
 import * as path from "node:path";
 import * as os from "node:os";
+import {fileURLToPath} from "node:url";
 
 declare const DEVELOPMENT: boolean;
 
@@ -26,7 +27,7 @@ export function resolveNative(): string {
     }
 
     try {
-        return import.meta.resolve(platform.packageName);
+        return fileURLToPath(import.meta.resolve(platform.packageName));
     } catch {
         throw new Error(`Could not find '${platform.packageName}'. Please reinstall '@pdml/cli' with optional dependencies enabled.`);
     }
@@ -55,7 +56,7 @@ export function resolvePlatformInformation(): PlatformInformation {
     return {
         rid,
         packageName: `@pdml/compiler-${rid}/executable`,
-        extension: platform === "win32" ? ".exe" : ""
+        extension: platform == "win32" ? ".exe" : ""
     };
 
 }

@@ -14,6 +14,16 @@
     },
     "homepage": "https://github.com/CBx0-dev/PDML#readme",
     "main": "./dist/lib.js",
+    "types": "./dist/lib.d.ts",
+    "bin": {
+        "pdml": "./dist/bin.js"
+    },
+    "engines": {
+        "node": ">=20.11.0"
+    },
+    "publishConfig": {
+        "access": "public"
+    },
     "keywords": [
         "pdml",
         "language"

@@ -111,7 +111,7 @@ function resolveExtensionDirectory(
             relative == ".." ||
             relative.startsWith(`..${path.sep}`) ||
             path.isAbsolute(relative) ||
-            !fs.statSync(relative).isFile()
+            !fs.statSync(realDllPath).isFile()
         ) {
             return null;
         }
@@ -172,8 +172,8 @@ export function discoverExtensions(sourceDir: string): Extension[] {
         }
 
         if (
-            (!packageJson.dependencies || !("@pdml/compiler" in packageJson.dependencies)) &&
-            (!packageJson.peerDependencies || !("@pdml/compiler" in packageJson.peerDependencies))
+            (!packageJson.dependencies || !("@pdml/cli" in packageJson.dependencies)) &&
+            (!packageJson.peerDependencies || !("@pdml/cli" in packageJson.peerDependencies))
         ) {
             continue;
         }

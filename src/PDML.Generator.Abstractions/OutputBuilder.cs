@@ -16,5 +16,5 @@ public sealed class OutputBuilder
         }
     }
 
-    public IEnumerable<OutputFile> GetFiles() => _outputFiles;
+    public IReadOnlyList<OutputFile> GetFiles() => _outputFiles;
 }

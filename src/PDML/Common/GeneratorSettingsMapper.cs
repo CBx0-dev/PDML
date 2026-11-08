@@ -1,8 +1,9 @@
 using System.Collections;
 using System.Globalization;
 using System.Reflection;
+using PDML.Generator.Abstractions;
 
-namespace PDML.Generator.Abstractions;
+namespace PDML.Common;
 
 public static class GeneratorSettingsMapper
 {

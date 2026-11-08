@@ -3,7 +3,7 @@
     <PropertyGroup>
         <TargetFramework>net9.0</TargetFramework>
         <TargetFrameworks>net9.0</TargetFrameworks>
-        <TargetName>pdml</TargetName>
+        <OutputName>pdml</OutputName>
         <OutputType>Exe</OutputType>
         <IsPackable>false</IsPackable>
     </PropertyGroup>

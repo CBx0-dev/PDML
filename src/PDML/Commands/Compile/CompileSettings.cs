@@ -1,10 +1,10 @@
-using Spectre.Console.Cli;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using Spectre.Console.Cli;
 
-namespace PDML.Commands;
+namespace PDML.Commands.Compile;
 
-internal sealed class CompileSettings : CommandSettings
+internal sealed class CompileSettings : BaseCommandSettings
 {
     [CommandOption("--dll-path")]
     [Description("Add a folder path to lookup generator DLLs")]
@@ -23,7 +23,7 @@ internal sealed class CompileSettings : CommandSettings
     [Description("Options to pass to the generator")]
     public ILookup<string, string>? Properties { get; init; }
 
-    [CommandOption("-o|--output", true)]
+    [CommandOption("-o|--output")]
     [Description("The output directory")]
-    public required string OutputDirectory { get; init; }
+    public required string? OutputDirectory { get; init; }
 }

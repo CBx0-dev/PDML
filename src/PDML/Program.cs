@@ -1,6 +1,6 @@
-﻿using PDML.Commands;
-using Spectre.Console.Cli;
+﻿using Spectre.Console.Cli;
 using System.Globalization;
+using PDML.Commands.Compile;
 
 namespace PDML;
 
@@ -12,9 +12,9 @@ public static class Program
         app.Configure(config =>
         {
             config.Settings.Culture = CultureInfo.InvariantCulture;
-            config.AddCommand<CompileCommand>("compile");
+            config.AddCommand<CompileSettings, CompileTask, CompileResult>("compile");
         });
-        
+
         return app.Run(args, [new PropertyArgumentPreprocessor()]);
     }
 }

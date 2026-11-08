@@ -1,15 +1,16 @@
 using GlobExpressions;
+using PDML.Common;
 using PDML.Compiler;
 using PDML.Compiler.Common;
 using PDML.Compiler.Diagnostics;
 using PDML.Generator.Abstractions;
-using Spectre.Console.Cli;
+using PDML.Output;
 
-namespace PDML.Commands;
+namespace PDML.Commands.Compile;
 
-internal sealed class CompileCommand : Command<CompileSettings>
+internal class CompileTask : ITask<CompileResult, CompileSettings>
 {
-    public override int Execute(CommandContext context, CompileSettings settings, CancellationToken cancellationToken)
+    public Task<CompileResult> ExecuteAsync(CompileSettings settings)
     {
         CodeGenerator generator = InitGenerator(settings.Generator, settings.Properties, settings.DllFolders);
 
@@ -26,14 +27,28 @@ internal sealed class CompileCommand : Command<CompileSettings>
 
         if (compilation.HasErrors)
         {
-            return 1;
+            return Task.FromResult(new CompileResult
+            {
+                ExitCode = 1,
+                Diagnostics = ((IEnumerable<Diagnostic>)compilation.Diagnostics).ToList(),
+                OutputFiles = []
+            });
         }
 
         OutputBuilder output = generator.Generate(compilation.Modules);
-        output.SaveTo(settings.OutputDirectory);
+        if (settings.OutputDirectory is not null)
+        {
+            output.SaveTo(settings.OutputDirectory);
+        }
 
-        return 0;
+        return Task.FromResult(new CompileResult
+        {
+            ExitCode = 0,
+            Diagnostics = ((IEnumerable<Diagnostic>)compilation.Diagnostics).ToList(),
+            OutputFiles = output.GetFiles()
+        });
     }
+
 
     private CodeGenerator InitGenerator(string generatorKey, ILookup<string, string>? properties, string[]? dllFolders)
     {
@@ -96,4 +111,11 @@ internal sealed class CompileCommand : Command<CompileSettings>
 
         return sourceFiles.ToArray();
     }
+
+    public IOutputHandler<CompileResult>? ResolveOutputHandler(OutputFormat format, CompileSettings settings) => format switch
+    {
+        OutputFormat.Plain => new PlainCompileOutputHandler(),
+        OutputFormat.Json => new JsonCompileOutputHandler(),
+        _ => null
+    };
 }

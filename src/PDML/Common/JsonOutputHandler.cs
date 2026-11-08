@@ -19,7 +19,10 @@ internal abstract class JsonOutputHandler<TResult> : IOutputHandler<TResult> whe
             Console.OpenStandardOutput()
         );
 
-        JsonSerializer.Serialize(writer, data);
+        JsonSerializer.Serialize(writer, data, new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        });
         Console.WriteLine();
     }
 }

@@ -1,5 +1,4 @@
 using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
 using Spectre.Console.Cli;
 
 namespace PDML.Commands.Compile;
@@ -10,10 +9,13 @@ internal sealed class CompileSettings : BaseCommandSettings
     [Description("Add a folder path to lookup generator DLLs")]
     public string[]? DllFolders { get; init; }
 
-    [MinLength(1)]
-    [CommandArgument(0, "<path>")]
+    [CommandArgument(0, "[<path>]")]
     [Description("The path to *.pdml a file or a glob pattern that resolves to multiple files")]
-    public required string[] Paths { get; init; }
+    public required string[]? Paths { get; init; }
+
+    [CommandOption("--stdin")]
+    [Description("Reads the <stdin> as input and tries to parse it")]
+    public required bool UseStdin { get; init; }
 
     [CommandOption("-g|--generator", true)]
     [Description("The generator key that determines the output file format")]

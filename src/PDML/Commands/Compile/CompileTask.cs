@@ -14,7 +14,7 @@ internal class CompileTask : ITask<CompileResult, CompileSettings>
     {
         CodeGenerator generator = InitGenerator(settings.Generator, settings.Properties, settings.DllFolders);
 
-        SourceFile[] sourceFiles = ReadFiles(settings.Paths);
+        SourceFile[] sourceFiles = ReadFiles(settings.Paths, settings.UseStdin);
         Compilation compilation = CompilerService.CompileEntryPoints(
             new DefaultDiagnosticService(),
             sourceFiles
@@ -72,8 +72,32 @@ internal class CompileTask : ITask<CompileResult, CompileSettings>
         return builder.CreateInstance(settings);
     }
 
-    private SourceFile[] ReadFiles(string[] paths)
+    private SourceFile[] ReadFiles(string[]? paths, bool useStdin)
     {
+        if (useStdin)
+        {
+            if (paths is not null)
+            {
+                throw new ArgumentException("Standard input ('-') cannot be combined with other input files.");
+            }
+
+            string input = Console.In.ReadToEnd();
+
+            return
+            [
+                SourceFile.Create(
+                    Directory.GetCurrentDirectory(),
+                    "stdin",
+                    input
+                )
+            ];
+        }
+
+        if (paths is null)
+        {
+            throw new ArgumentException("At least one source path is required");
+        }
+
         List<SourceFile> sourceFiles = new List<SourceFile>();
 
         foreach (string path in paths)

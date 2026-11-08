@@ -53,6 +53,14 @@ internal class CompileTask : ITask<CompileResult, CompileSettings>
     private CodeGenerator InitGenerator(string generatorKey, ILookup<string, string>? properties, string[]? dllFolders)
     {
         GeneratorLoader.LookupPaths.Add(AppContext.BaseDirectory);
+        
+        string? pathEnv = Environment.GetEnvironmentVariable("PDML_EXTENSIONS_PATH");
+        if (pathEnv is not null)
+        {
+            GeneratorLoader.LookupPaths.AddRange(
+                pathEnv.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries)
+            );
+        }
 
         if (dllFolders is not null)
         {

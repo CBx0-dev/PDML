@@ -13,6 +13,6 @@ internal class PlainCompileOutputHandler : IOutputHandler<CompileResult>
 
     public void OnException(Exception exception)
     {
-        AnsiConsole.WriteException(exception);
+        AnsiConsole.WriteException(exception, ExceptionFormats.NoStackTrace);
     }
 }

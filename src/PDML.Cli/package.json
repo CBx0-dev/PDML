@@ -1,0 +1,39 @@
+{
+    "name": "@pdml/cli",
+    "version": "0.0.0",
+    "description": "PDML Compiler",
+    "author": "CBx0",
+    "publisher": "CBx0",
+    "license": "Apache-2.0",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/CBx0-dev/PDML.git"
+    },
+    "bugs": {
+        "url": "https://github.com/CBx0-dev/PDML/issues"
+    },
+    "homepage": "https://github.com/CBx0-dev/PDML#readme",
+    "main": "./dist/lib.js",
+    "keywords": [
+        "pdml",
+        "language"
+    ],
+    "files": [
+        "dist/**",
+        "README.md",
+        "LICENSE"
+    ],
+    "scripts": {
+        "build": "rolldown -c",
+        "build:dev": "rolldown -c --watch --dev"
+    },
+    "packageManager": "pnpm@12.15.0",
+    "type": "module",
+    "devDependencies": {
+        "@types/node": "^26.6.6",
+        "rolldown": "^1.2.16",
+        "rolldown-plugin-dts": "^0.30.0",
+        "typescript": "^7.0.2"
+    },
+    "optionalDependencies": {}
+}

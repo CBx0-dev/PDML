@@ -14,6 +14,7 @@ Server Protocol (LSP) support.
 - **PDML.Plugin.LSP**: Language Server Protocol (LSP) implementation for PDML.
 - **PDML.Plugin.VSCode**: Visual Studio Code extension for PDML syntax highlighting and language features.
 - **PDML.Compatibility**: Compatibility types and polyfills for older target frameworks (.NET Standard 2.0).
+- **PDML.Npm**: Router-Package for the .NET PDML CLI
 
 ## License
 

@@ -1,0 +1,18 @@
+{
+    "extends": "../tsconfig.base.json",
+    "compilerOptions": {
+        "rootDir": "src",
+        "types": [
+            "node",
+            "rolldown"
+        ]
+    },
+    "include": [
+        "src/**/*.ts",
+        "rolldown.config.ts"
+    ],
+    "exclude": [
+        "node_modules",
+        "dist"
+    ]
+}

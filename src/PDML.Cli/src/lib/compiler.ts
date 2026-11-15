@@ -28,6 +28,20 @@ export interface CompileVirtualOptions extends BaseCompileOptions {
 
 export type CompileOptions = CompileDiskOptions | CompileVirtualOptions;
 
+export interface AnalyzeResult {
+    readonly diagnostics: Diagnostic[];
+}
+
+interface AnalyzeDiskOptions {
+    files: string[];
+}
+
+interface AnalyzeVirtualOptions {
+    stdin: string;
+}
+
+export type AnalyzeOptions = AnalyzeDiskOptions | AnalyzeVirtualOptions;
+
 export class Compiler {
     private readonly _executable: string;
 
@@ -48,6 +62,18 @@ export class Compiler {
                 args.push(`-p:${key}`, value);
             }
         }
+
+        if ("files" in options) {
+            args.push(...options.files);
+            return this.exec(args);
+        }
+
+        args.push("--stdin");
+        return this.exec(args, options.stdin);
+    }
+
+    public analyze(options: AnalyzeOptions): AnalyzeResult | IPCException {
+        const args: string[] = ["analyze", "-f", "json"];
 
         if ("files" in options) {
             args.push(...options.files);

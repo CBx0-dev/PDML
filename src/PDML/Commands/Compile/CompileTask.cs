@@ -20,11 +20,6 @@ internal class CompileTask : ITask<CompileResult, CompileSettings>
             sourceFiles
         );
 
-        if (compilation.Diagnostics.HasItems)
-        {
-            DiagnosticPrinter.Print((DefaultDiagnosticBag)compilation.Diagnostics);
-        }
-
         if (compilation.HasErrors)
         {
             return Task.FromResult(new CompileResult
@@ -53,7 +48,7 @@ internal class CompileTask : ITask<CompileResult, CompileSettings>
     private CodeGenerator InitGenerator(string generatorKey, ILookup<string, string>? properties, string[]? dllFolders)
     {
         GeneratorLoader.LookupPaths.Add(AppContext.BaseDirectory);
-        
+
         string? pathEnv = Environment.GetEnvironmentVariable("PDML_EXTENSIONS_PATH");
         if (pathEnv is not null)
         {

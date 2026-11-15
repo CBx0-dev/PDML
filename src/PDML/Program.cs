@@ -1,5 +1,6 @@
 ﻿using Spectre.Console.Cli;
 using System.Globalization;
+using PDML.Commands.Analyze;
 using PDML.Commands.Compile;
 
 namespace PDML;
@@ -13,6 +14,7 @@ public static class Program
         {
             config.Settings.Culture = CultureInfo.InvariantCulture;
             config.AddCommand<CompileSettings, CompileTask, CompileResult>("compile");
+            config.AddCommand<AnalyzeSettings, AnalyzeTask, AnalyzeResult>("analyze");
         });
 
         return app.Run(args, [new PropertyArgumentPreprocessor()]);

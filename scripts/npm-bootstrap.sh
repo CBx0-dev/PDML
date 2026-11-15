@@ -20,8 +20,8 @@ cd "$(dirname "$0")/.."
 STAGE="$(mktemp -d)"
 trap 'rm -rf "$STAGE"' EXIT
 
-node scripts/npm-stage.mjs placeholder --out "$STAGE" > /dev/null
-mapfile -t PACKAGES < <(node scripts/npm-stage.mjs list)
+pnpm distributor placeholder --out "$STAGE" > /dev/null
+mapfile -t PACKAGES < <(pnpm distributor list)
 
 for pkg in "${PACKAGES[@]}"; do
   if npm view "$pkg" name > /dev/null 2>&1; then

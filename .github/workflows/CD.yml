@@ -238,9 +238,16 @@ jobs:
         with:
           dotnet-version: 9.0.x
 
+      - uses: pnpm/action-setup@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 24
+
+      - name: Build tooling
+        run: |
+          pnpm install --frozen-lockfile --ignore-scripts
+          pnpm --filter @pdml/distributor run build
 
       - name: Publish CLI
         run: |
@@ -263,7 +270,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p out/tgz
-          node scripts/npm-stage.mjs native --rid "${{ matrix.rid }}" --version "$VERSION" --publish-dir out/cli --out out/npm
+          pnpm distributor native --rid "${{ matrix.rid }}" --version "$VERSION" --publish-dir out/cli --out out/npm
           npm pack "./out/npm/compiler-${{ matrix.rid }}" --pack-destination out/tgz
 
       # Artifacts are zip files and drop the executable bit, a tarball keeps it.
@@ -287,9 +294,16 @@ jobs:
         with:
           dotnet-version: 9.0.x
 
+      - uses: pnpm/action-setup@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 24
+
+      - name: Build tooling
+        run: |
+          pnpm install --frozen-lockfile --ignore-scripts
+          pnpm --filter @pdml/distributor run build
 
       - name: Publish generators
         run: |
@@ -303,8 +317,8 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p out/tgz
-          node scripts/npm-stage.mjs generator --name csharp --version "$VERSION" --dll-dir out/gen/CSharp --out out/npm
-          node scripts/npm-stage.mjs generator --name typescript --version "$VERSION" --dll-dir out/gen/TypeScript --out out/npm
+          pnpm distributor generator --name csharp --version "$VERSION" --dll-dir out/gen/CSharp --out out/npm
+          pnpm distributor generator --name typescript --version "$VERSION" --dll-dir out/gen/TypeScript --out out/npm
           npm pack ./out/npm/generator-csharp ./out/npm/generator-typescript --pack-destination out/tgz
 
       - uses: actions/upload-artifact@v4
@@ -323,8 +337,6 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: pnpm/action-setup@v4
-        with:
-          package_json_file: src/PDML.Cli/package.json
 
       - uses: actions/setup-node@v4
         with:
@@ -333,14 +345,15 @@ jobs:
       - name: Build
         run: |
           set -euo pipefail
-          pnpm install --frozen-lockfile --ignore-scripts --filter @pdml/cli...
+          pnpm install --frozen-lockfile --ignore-scripts
           pnpm --filter @pdml/cli run build
+          pnpm --filter @pdml/distributor run build
 
       - name: Stage and pack
         run: |
           set -euo pipefail
           mkdir -p out/tgz
-          node scripts/npm-stage.mjs cli --version "$VERSION" --out out/npm
+          pnpm distributor cli --version "$VERSION" --out out/npm
           npm pack ./out/npm/cli --pack-destination out/tgz
 
       - uses: actions/upload-artifact@v4

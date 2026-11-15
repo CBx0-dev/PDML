@@ -8,6 +8,8 @@ public static class GeneratorLoader
 
     public static readonly List<string> LookupPaths = new List<string>();
 
+    public static IEnumerable<CodeGeneratorBuilder> Generators => _generators.Values;
+
     public static void LoadAssemblies()
     {
         _generators.Clear();

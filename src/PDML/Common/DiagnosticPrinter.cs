@@ -3,11 +3,19 @@ using PDML.Compiler.Diagnostics;
 using PDML.Compiler.Diagnostics.Abstractions;
 using Spectre.Console;
 
-namespace PDML;
+namespace PDML.Common;
 
 internal static class DiagnosticPrinter
 {
     public static void Print(DefaultDiagnosticBag diagnostics)
+    {
+        foreach (Diagnostic diagnostic in diagnostics)
+        {
+            Print(diagnostic);
+        }
+    }
+
+    public static void Print(IEnumerable<Diagnostic> diagnostics)
     {
         foreach (Diagnostic diagnostic in diagnostics)
         {
@@ -64,7 +72,7 @@ internal static class DiagnosticPrinter
                 );
                 Print(additonalLocation, severityColor);
             }
-        } 
+        }
 
         AnsiConsole.WriteLine();
     }
@@ -100,7 +108,7 @@ internal static class DiagnosticPrinter
             string lineNumberText = lineNumber.ToString().PadLeft(lineNumberWidth);
 
             AnsiConsole.MarkupLine($"[grey]{lineNumberText}| [/] {Markup.Escape(sourceLine)}");
-            
+
             if (!isDiagnosticLine)
             {
                 continue;
@@ -117,7 +125,7 @@ internal static class DiagnosticPrinter
             endColumn = Math.Clamp(endColumn, startColumn, sourceLine.Length + 1);
 
             int underlineLength = Math.Max(1, endColumn - startColumn);
-          
+
             AnsiConsole.MarkupLine(
                 $"[grey]{new string(' ', lineNumberWidth)}| " +
                 $"{new string(' ', startColumn)}[/]" +

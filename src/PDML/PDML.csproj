@@ -3,7 +3,7 @@
     <PropertyGroup>
         <TargetFramework>net9.0</TargetFramework>
         <TargetFrameworks>net9.0</TargetFrameworks>
-        <TargetName>pdml</TargetName>
+        <OutputName>pdml</OutputName>
         <OutputType>Exe</OutputType>
         <IsPackable>false</IsPackable>
     </PropertyGroup>
@@ -16,12 +16,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\PDML.Compiler\PDML.Compiler.csproj"/>
-        <ProjectReference Include="..\PDML.Generator.TypeScript\PDML.Generator.TypeScript.csproj">
-            <Private>true</Private>
-        </ProjectReference>
-        <ProjectReference Include="..\PDML.Generator.CSharp\PDML.Generator.CSharp.csproj">
-            <Private>true</Private>
-        </ProjectReference>
+        <ProjectReference Include="..\PDML.Generator.Abstractions\PDML.Generator.Abstractions.csproj"/>
     </ItemGroup>
 
 </Project>

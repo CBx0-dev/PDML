@@ -1,4 +1,5 @@
 bin/
+!src/PDML.Cli/src/bin
 obj/
 /packages/
 riderModule.iml

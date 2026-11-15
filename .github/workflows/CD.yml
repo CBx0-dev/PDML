@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       type:
-        description: "release = NuGet packages, LSP, compiler CLI. vscode = extension only (own version)"
+        description: "release = NuGet packages, npm packages, LSP, compiler CLI. vscode = extension only (own version)"
         type: choice
         required: true
         options:
@@ -189,6 +189,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: assets
+          pattern: bin-*
           merge-multiple: true
 
       - name: Checksums
@@ -204,6 +205,215 @@ jobs:
             --title "PDML v$VERSION" \
             --latest \
             --draft
+
+  # Native CLI per platform, each published as its own npm package (@pdml/compiler-<rid>).
+  # Self-contained and not single-file: the CLI loads generator dlls at runtime.
+  # InvariantGlobalization avoids a runtime dependency on libicu.
+  npm-natives:
+    needs: test
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - rid: win-x64
+            os: ubuntu-latest
+          - rid: win-arm64
+            os: ubuntu-latest
+          - rid: linux-x64
+            os: ubuntu-latest
+            smoke: true
+          - rid: linux-arm64
+            os: ubuntu-latest
+          - rid: osx-x64
+            os: macos-latest
+          - rid: osx-arm64
+            os: macos-latest
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Build tooling
+        run: |
+          pnpm install --frozen-lockfile --ignore-scripts
+          pnpm --filter @pdml/distributor run build
+
+      - name: Publish CLI
+        run: |
+          dotnet publish \
+            src/PDML \
+            -c Release \
+            -r ${{ matrix.rid }} \
+            --self-contained \
+            -p:PublishSingleFile=false \
+            -p:InvariantGlobalization=true \
+            -p:Version=${{ env.VERSION }} \
+            -o out/cli
+
+      - name: Smoke test
+        if: ${{ matrix.smoke }}
+        run: out/cli/PDML --help
+
+      - name: Stage and pack
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p out/tgz
+          pnpm distributor native --rid "${{ matrix.rid }}" --version "$VERSION" --publish-dir out/cli --out out/npm
+          npm pack "./out/npm/compiler-${{ matrix.rid }}" --pack-destination out/tgz
+
+      # Artifacts are zip files and drop the executable bit, a tarball keeps it.
+      - uses: actions/upload-artifact@v4
+        with:
+          name: npm-compiler-${{ matrix.rid }}
+          path: out/tgz/*.tgz
+          if-no-files-found: error
+          retention-days: 7
+
+  # Generator dlls, each published as @pdml/generator-<name>.
+  npm-generators:
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Build tooling
+        run: |
+          pnpm install --frozen-lockfile --ignore-scripts
+          pnpm --filter @pdml/distributor run build
+
+      - name: Publish generators
+        run: |
+          set -euo pipefail
+          for generator in CSharp TypeScript
+          do
+            dotnet publish "src/PDML.Generator.$generator" -c Release -f net9.0 -p:Version=$VERSION -o "out/gen/$generator"
+          done
+
+      - name: Stage and pack
+        run: |
+          set -euo pipefail
+          mkdir -p out/tgz
+          pnpm distributor generator --name csharp --version "$VERSION" --dll-dir out/gen/CSharp --out out/npm
+          pnpm distributor generator --name typescript --version "$VERSION" --dll-dir out/gen/TypeScript --out out/npm
+          npm pack ./out/npm/generator-csharp ./out/npm/generator-typescript --pack-destination out/tgz
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: npm-generators
+          path: out/tgz/*.tgz
+          if-no-files-found: error
+          retention-days: 7
+
+  # The main package: TypeScript launcher and library (@pdml/cli).
+  npm-cli:
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Build
+        run: |
+          set -euo pipefail
+          pnpm install --frozen-lockfile --ignore-scripts
+          pnpm --filter @pdml/cli run build
+          pnpm --filter @pdml/distributor run build
+
+      - name: Stage and pack
+        run: |
+          set -euo pipefail
+          mkdir -p out/tgz
+          pnpm distributor cli --version "$VERSION" --out out/npm
+          npm pack ./out/npm/cli --pack-destination out/tgz
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: npm-cli
+          path: out/tgz/*.tgz
+          if-no-files-found: error
+          retention-days: 7
+
+  # Publishes through npm trusted publishing (OIDC): no npm token is stored anywhere.
+  # Every package needs this repository and CD.yml configured as trusted publisher (scripts/npm-bootstrap.sh).
+  npm-publish:
+    needs: [npm-natives, npm-generators, npm-cli]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: out/tgz
+          pattern: npm-*
+          merge-multiple: true
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+
+      # Trusted publishing needs npm >= 11.5.1
+      - name: Upgrade npm
+        run: npm install -g npm@^11.5.1
+
+      # Order matters: the CLI lists the natives as optional dependencies, so they have to exist first.
+      # Versions that are already on the registry are skipped so a failed run can simply be re-run.
+      - name: Publish
+        run: |
+          set -euo pipefail
+
+          publish() {
+            local tgz="$1"
+            local name
+            name="$(tar -xOzf "$tgz" package/package.json | node -p 'JSON.parse(require("fs").readFileSync(0, "utf8")).name')"
+
+            if npm view "$name@$VERSION" version > /dev/null 2>&1
+            then
+              echo "$name@$VERSION is already published, skipping"
+              return
+            fi
+
+            npm publish "$tgz" --access public
+          }
+
+          for tgz in out/tgz/pdml-compiler-*.tgz out/tgz/pdml-generator-*.tgz
+          do
+            publish "$tgz"
+          done
+
+          publish "out/tgz/pdml-cli-$VERSION.tgz"
 
   vscode:
     if: ${{ inputs.type == 'vscode' }}

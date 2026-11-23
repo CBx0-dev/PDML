@@ -8,6 +8,7 @@ public enum TokenType
     Identifier,
     Comment,
     String,
+    Int,
 
     TypeKeyword,
     VirtualKeyword,

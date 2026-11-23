@@ -69,6 +69,11 @@ public sealed class Lexer
             return NextIdentifier(start);
         }
 
+        if (char.IsDigit(_current))
+        {
+            return NextInt(start);
+        }
+
         if (_current == '"')
         {
             return NextString(start);
@@ -151,6 +156,16 @@ public sealed class Lexer
         };
 
         return CreateToken(location, type, content);
+    }
+
+    private Token NextInt(Coordinate start)
+    {
+        while (char.IsDigit(_current) && !_isEof)
+        {
+            Skip();
+        }
+
+        return CreateToken(start, TokenType.Int);
     }
     
     private Token NextString(Coordinate start)

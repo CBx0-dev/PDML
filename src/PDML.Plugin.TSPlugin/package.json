@@ -1,0 +1,50 @@
+{
+    "name": "@pdml/tsplugin",
+    "version": "0.0.0",
+    "description": "TSServer plugin for the PDML Language",
+    "author": "CBx0",
+    "publisher": "CBx0",
+    "license": "Apache-2.0",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/CBx0-dev/PDML.git"
+    },
+    "bugs": {
+        "url": "https://github.com/CBx0-dev/PDML/issues"
+    },
+    "homepage": "https://github.com/CBx0-dev/PDML#readme",
+    "main": "./dist/main.js",
+    "types": "./dist/main.d.ts",
+    "engines": {
+        "node": ">=20.11.0"
+    },
+    "publishConfig": {
+        "access": "public"
+    },
+    "keywords": [
+        "tsserver",
+        "plugin",
+        "pdml",
+        "language"
+    ],
+    "files": [
+        "dist/**",
+        "README.md",
+        "LICENSE"
+    ],
+    "scripts": {
+        "build": "tsc",
+        "test": "tsc && tsc -p tsconfig.test.json && node --test --test-concurrency=1 \"./test-build/test/*.test.js\""
+    },
+    "packageManager": "pnpm@12.15.0",
+    "type": "commonjs",
+    "dependencies": {
+        "@pdml/cli": "workspace:*",
+        "@pdml/typescript-generator": "workspace:*"
+    },
+    "devDependencies": {
+        "@types/node": "^26.6.6",
+        "rolldown": "^1.2.16",
+        "typescript": "^6.0.3"
+    }
+}

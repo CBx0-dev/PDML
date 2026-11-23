@@ -5,15 +5,20 @@ namespace PDML.Generator.TypeScript;
 
 public static class ModuleIdentityExtension
 {
-    public static string ToGeneratorString(this ModuleIdentity identity)
+    public static string ToGeneratorString(this ModuleIdentity identity, string extension, bool isImport = false)
     {
-        IEnumerable<string> segments = identity.Segments.Select(segment => segment.ToCamelCase());
+        if (isImport)
+        {
+            if (extension.EndsWith(".d.ts"))
+            {
+                extension = extension.Substring(0, extension.Length - ".d.ts".Length);
+            }
+            else if (extension.EndsWith(".ts"))
+            {
+                extension = extension.Substring(0, extension.Length - ".ts".Length);
+            }
+        }
 
-        return string.Join(Path.PathSeparator.ToString(), segments);
-    }
-
-    public static string ToGeneratorString(this ModuleIdentity identity, string extension)
-    {
         IEnumerable<string> segments = identity.Segments.Select(segment => segment.ToCamelCase());
 
         return string.Join(Path.PathSeparator.ToString(), segments) + extension;

@@ -85,6 +85,26 @@ program
     });
 
 program
+    .command("package")
+    .description("Stage ordinary package (e.g. tsplugin)")
+    .requiredOption("--name <value>", "Package name (e.g. tsplugin)")
+    .requiredOption("--version <value>", "Package version (e.g. 1.2.3)")
+    .requiredOption("--out <dir>", "Output directory for staged package")
+    .action((options) => {
+        try {
+            const dir: string = stage.stagePackage({
+                name: options.name,
+                version: options.version,
+                out: options.out
+            });
+            console.log(dir);
+        } catch (err: unknown) {
+            console.error(`distributor: ${(err as Error).message}`);
+            process.exit(1);
+        }
+    });
+
+program
     .command("placeholder")
     .description("Stage placeholder packages for initial bootstrap")
     .requiredOption("--out <dir>", "Output directory for staged packages")

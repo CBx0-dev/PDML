@@ -39,7 +39,8 @@ export function getAllPackageNames(): string[] {
     return [
         ...Object.keys(config.NATIVE_TARGETS).map(getNativePackageName),
         ...Object.keys(config.GENERATORS).map(getGeneratorPackageName),
-        config.CLI_PACKAGE
+        config.CLI_PACKAGE,
+        ...Object.values(config.PACKAGES).map((pkg) => pkg.name)
     ];
 }
 
@@ -62,7 +63,7 @@ export function findProjectRoot(startDir: string = import.meta.dirname): string 
             return current;
         }
         const parent: string = path.dirname(current);
-        if (parent === current) {
+        if (parent == current) {
             return path.resolve(startDir, "..", "..", "..");
         }
         current = parent;
@@ -112,11 +113,7 @@ export function writeManifest(dir: string, manifest: PackageManifest): void {
     fs.writeFileSync(path.join(dir, "package.json"), JSON.stringify(manifest, null, 2) + "\n");
 }
 
-export function copyLegal(dir: string, readmeText?: string, rootDir: string = findProjectRoot()): void {
+export function copyLegal(dir: string, rootDir: string = findProjectRoot()): void {
     fs.copyFileSync(path.join(rootDir, "LICENSE"), path.join(dir, "LICENSE"));
-    if (readmeText) {
-        fs.writeFileSync(path.join(dir, "README.md"), readmeText);
-    } else {
-        fs.copyFileSync(path.join(rootDir, "README.md"), path.join(dir, "README.md"));
-    }
+    fs.copyFileSync(path.join(rootDir, "README.md"), path.join(dir, "README.md"));
 }

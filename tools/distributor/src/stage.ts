@@ -22,6 +22,12 @@ export interface StageCliOptions {
     out: string;
 }
 
+export interface StagePackageOptions {
+    name: string;
+    version: string;
+    out: string;
+}
+
 export interface StagePlaceholdersOptions {
     out: string;
 }
@@ -62,11 +68,7 @@ export function stageNative(options: StageNativeOptions): string {
     };
 
     utils.writeManifest(dir, manifest);
-    utils.copyLegal(
-        dir,
-        `# ${name}\n\nNative PDML compiler for \`${rid}\`.\n\nDo not install this package directly. ` +
-        `It is installed automatically as an optional dependency of [\`${config.CLI_PACKAGE}\`](https://www.npmjs.com/package/${config.CLI_PACKAGE}).\n`
-    );
+    utils.copyLegal(dir);
 
     return dir;
 }
@@ -102,11 +104,7 @@ export function stageGenerator(options: StageGeneratorOptions): string {
     };
 
     utils.writeManifest(dir, manifest);
-    utils.copyLegal(
-        dir,
-        `# ${name}\n\n${generator.description}\n\nExtension for [\`${config.CLI_PACKAGE}\`](https://www.npmjs.com/package/${config.CLI_PACKAGE}). ` +
-        `Install it next to the CLI and it is discovered automatically.\n`
-    );
+    utils.copyLegal(dir);
 
     return dir;
 }
@@ -140,6 +138,73 @@ export function stageCli(options: StageCliOptions): string {
         engines: source.engines,
         files: source.files,
         optionalDependencies
+    };
+
+    utils.writeManifest(dir, manifest);
+    utils.copyLegal(dir);
+
+    return dir;
+}
+
+export function stagePackage(options: StagePackageOptions): string {
+    const key: string = options.name;
+    const pkg: config.Package | undefined =
+        config.PACKAGES[key] ||
+        Object.values(config.PACKAGES).find(
+            (p) => p.name === key || path.basename(p.dir).toLowerCase() === key.toLowerCase()
+        );
+
+    if (!pkg) {
+        throw new Error(`unknown package '${key}', expected one of ${Object.keys(config.PACKAGES).join(", ")}`);
+    }
+
+    const version: string = utils.validateVersion(options.version);
+    const rootDir: string = utils.findProjectRoot();
+    const pkgDir: string = path.resolve(rootDir, pkg.dir);
+    const manifestPath: string = path.join(pkgDir, "package.json");
+
+    if (!fs.existsSync(manifestPath)) {
+        throw new Error(`package.json not found at ${manifestPath}`);
+    }
+
+    const source: utils.PackageManifest = JSON.parse(fs.readFileSync(manifestPath, "utf-8"));
+    const distDir: string = path.join(pkgDir, "dist");
+
+    if (!fs.existsSync(distDir)) {
+        throw new Error(`dist directory is missing in ${pkg.dir}, build the package first (pnpm --filter ${pkg.name} run build)`);
+    }
+
+    const dir: string = utils.freshDir(options.out, pkg.name);
+    fs.cpSync(distDir, path.join(dir, "dist"), {recursive: true});
+
+    const resolveWorkspaceDeps = (deps?: Record<string, string>): Record<string, string> | undefined => {
+        if (!deps) {
+            return undefined;
+        }
+
+        const resolved: Record<string, string> = {};
+        for (const [dep, val] of Object.entries(deps)) {
+            if (typeof val === "string" && val.startsWith("workspace:")) {
+                resolved[dep] = version;
+            } else {
+                resolved[dep] = val;
+            }
+        }
+        return resolved;
+    };
+
+    const manifest: utils.PackageManifest = {
+        ...utils.baseManifest(source.name || pkg.name, version, source.description || pkg.description || ""),
+        keywords: source.keywords,
+        type: source.type,
+        main: source.main,
+        types: source.types,
+        bin: source.bin,
+        engines: source.engines,
+        files: source.files,
+        ...(source.dependencies ? {dependencies: resolveWorkspaceDeps(source.dependencies as Record<string, string>)} : {}),
+        ...(source.peerDependencies ? {peerDependencies: resolveWorkspaceDeps(source.peerDependencies as Record<string, string>)} : {}),
+        ...(source.optionalDependencies ? {optionalDependencies: resolveWorkspaceDeps(source.optionalDependencies as Record<string, string>)} : {})
     };
 
     utils.writeManifest(dir, manifest);

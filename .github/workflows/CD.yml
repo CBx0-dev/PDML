@@ -363,10 +363,45 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+  # TypeScript / ordinary packages (e.g. @pdml/tsplugin).
+  npm-packages:
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Build
+        run: |
+          set -euo pipefail
+          pnpm install --frozen-lockfile --ignore-scripts
+          pnpm --filter @pdml/distributor run build
+          pnpm --filter @pdml/tsplugin run build
+
+      - name: Stage and pack
+        run: |
+          set -euo pipefail
+          mkdir -p out/tgz
+          pnpm distributor package --name tsplugin --version "$VERSION" --out out/npm
+          npm pack ./out/npm/tsplugin --pack-destination out/tgz
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: npm-packages
+          path: out/tgz/*.tgz
+          if-no-files-found: error
+          retention-days: 7
+
   # Publishes through npm trusted publishing (OIDC): no npm token is stored anywhere.
   # Every package needs this repository and CD.yml configured as trusted publisher (scripts/npm-bootstrap.sh).
   npm-publish:
-    needs: [npm-natives, npm-generators, npm-cli]
+    needs: [npm-natives, npm-generators, npm-cli, npm-packages]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -414,6 +449,11 @@ jobs:
           done
 
           publish "out/tgz/pdml-cli-$VERSION.tgz"
+
+          for tgz in out/tgz/pdml-*.tgz
+          do
+            publish "$tgz"
+          done
 
   vscode:
     if: ${{ inputs.type == 'vscode' }}

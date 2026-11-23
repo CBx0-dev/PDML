@@ -28,6 +28,8 @@ public static class TokenTypeExtension
                 return "import";
             case TokenType.FromKeyword:
                 return "from";
+            case TokenType.EnumKeyword:
+                return "enum";
             case TokenType.Ampersand:
                 return "&";
             case TokenType.Colon:

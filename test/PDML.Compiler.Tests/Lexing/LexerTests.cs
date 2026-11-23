@@ -122,6 +122,7 @@ public sealed class LexerTests
     [InlineData("alias", TokenType.AliasKeyword)]
     [InlineData("import", TokenType.ImportKeyword)]
     [InlineData("from", TokenType.FromKeyword)]
+    [InlineData("enum", TokenType.EnumKeyword)]
     public void NextToken_WithIdentifier_ReturnsKeywordToken(string symbol, TokenType expectedType)
     {
         (Lexer lexer, DiagnosticBag diagnostics) = CreateLexer(symbol);

@@ -146,6 +146,7 @@ public sealed class Lexer
             "alias" => TokenType.AliasKeyword,
             "import" => TokenType.ImportKeyword,
             "from" => TokenType.FromKeyword,
+            "enum" => TokenType.EnumKeyword,
             _ => TokenType.Identifier,
         };
 

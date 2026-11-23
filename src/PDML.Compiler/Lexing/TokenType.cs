@@ -14,7 +14,8 @@ public enum TokenType
     AliasKeyword,
     ImportKeyword,
     FromKeyword,
-
+    EnumKeyword,
+    
     Ampersand,
     Colon,
     Semicolon,

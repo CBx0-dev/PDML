@@ -6,7 +6,7 @@ namespace PDML.Compiler.Parsing.Nodes.Members;
 public record VirtualTypeDefinitionMember : Member
 {
     public override required Location Location { get; init; }
-    
+
     public required Token VirtualKeyword { get; init; }
     public required Token TypeKeyword { get; init; }
     public required Token Name { get; init; }

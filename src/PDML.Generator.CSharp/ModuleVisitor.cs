@@ -48,6 +48,11 @@ public sealed class ModuleVisitor : ModuleVisitorBase
         {
             Visit(type);
         }
+
+        foreach (BoundEnumDefinition @enum in module.Enums)
+        {
+            Visit(@enum);
+        }
     }
 
     protected override void Visit(BoundTypeDefinition type)
@@ -79,6 +84,25 @@ public sealed class ModuleVisitor : ModuleVisitorBase
     protected override void Visit(BoundAliasTypeDefinition type)
     {
         // Doing nothing here, because C# has no aliases.
+    }
+
+    protected override void Visit(BoundEnumDefinition @enum)
+    {
+        _writer.Write("public enum ");
+        _writer.WriteLine(@enum.Name.ToPascalCase());
+        _writer.WriteLine('{');
+
+        foreach ((string name, BoundEnumProperty property) in @enum.Properties)
+        {
+            _writer.Write("    ");
+            _writer.Write(name.ToPascalCase());
+            _writer.Write(" = ");
+            _writer.Write(property.Value);
+            _writer.WriteLine(',');
+        }
+
+        _writer.WriteLine('}');
+        _writer.WriteLine();
     }
 
     protected override void Visit(IntrinsicTypeRef type)
@@ -145,12 +169,17 @@ public sealed class ModuleVisitor : ModuleVisitorBase
     {
         _writer.Write(type.Definition.Name);
     }
-    
-    protected override void Visit(AliasDefinitionTypeRef alias)
+
+    protected override void Visit(AliasDefinitionTypeRef type)
     {
         // We just emit the aliasing type,
         // because C# has no real alias system
-        Visit(alias.Definition.AliasingType);
+        Visit(type.Definition.AliasingType);
+    }
+
+    protected override void Visit(EnumDefinitionTypeRef type)
+    {
+        _writer.Write(type.Definition.Name.ToPascalCase());
     }
 
     protected override void Visit(ArrayTypeRef type)

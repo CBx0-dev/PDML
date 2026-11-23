@@ -4,5 +4,5 @@ namespace PDML.Generator.TypeScript;
 
 public sealed class TypeScriptGeneratorSettings : GeneratorSettings
 {
-
+    public string FileExtension { get; init; } = ".ts";
 }

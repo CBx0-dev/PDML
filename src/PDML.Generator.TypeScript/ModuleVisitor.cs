@@ -7,8 +7,14 @@ namespace PDML.Generator.TypeScript;
 
 public sealed class ModuleVisitor : ModuleVisitorBase
 {
+    private readonly TypeScriptGeneratorSettings _settings;
     private readonly StringWriter _writer = new StringWriter();
 
+    public ModuleVisitor(TypeScriptGeneratorSettings settings)
+    {
+        _settings = settings;
+    }
+    
     public string Generate(BoundModule module)
     {
         _writer.GetStringBuilder().Clear();
@@ -35,7 +41,7 @@ public sealed class ModuleVisitor : ModuleVisitorBase
             }
 
             _writer.Write(" } from \"./");
-            _writer.Write(source.Identity.ToGeneratorString());
+            _writer.Write(source.Identity.ToGeneratorString(_settings.FileExtension, true));
             _writer.WriteLine("\";");
         }
 

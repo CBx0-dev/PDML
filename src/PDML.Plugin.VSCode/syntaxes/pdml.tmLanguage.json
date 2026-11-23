@@ -23,6 +23,9 @@
         },
         {
             "include": "#strings"
+        },
+        {
+            "include": "#ints"
         }
     ],
     "repository": {
@@ -30,7 +33,7 @@
             "patterns": [
                 {
                     "name": "keyword.control.pdml",
-                    "match": "\\b(import|from|type|virtual|alias)\\b"
+                    "match": "\\b(import|from|type|virtual|alias|enum)\\b"
                 }
             ]
         },
@@ -92,6 +95,10 @@
                     "match": "\\\\."
                 }
             ]
+        },
+        "ints": {
+            "name": "constant.numeric.integer",
+            "match": "\\b[+-]?[0-9]+\\b"
         }
     }
 }

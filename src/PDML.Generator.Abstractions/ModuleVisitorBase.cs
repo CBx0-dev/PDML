@@ -24,7 +24,7 @@ public abstract class ModuleVisitorBase
                 Visit(typeDefinitionTypeRef);
                 break;
 
-            case AliasDefintionTypeRef aliasDefintionTypeRef:
+            case AliasDefinitionTypeRef aliasDefintionTypeRef:
                 Visit(aliasDefintionTypeRef);
                 break;
             
@@ -45,7 +45,7 @@ public abstract class ModuleVisitorBase
 
     protected abstract void Visit(TypeDefinitionTypeRef type);
 
-    protected abstract void Visit(AliasDefintionTypeRef type);
+    protected abstract void Visit(AliasDefinitionTypeRef type);
   
     protected abstract void Visit(ArrayTypeRef type);
 

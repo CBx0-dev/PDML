@@ -123,7 +123,7 @@ public sealed class ModuleVisitor : ModuleVisitorBase
         _writer.Write(type.Definition.Name.ToPascalCase());
     }
     
-    protected override void Visit(AliasDefintionTypeRef alias)
+    protected override void Visit(AliasDefinitionTypeRef alias)
     {
         _writer.Write(alias.Definition.Name.ToPascalCase());
     }

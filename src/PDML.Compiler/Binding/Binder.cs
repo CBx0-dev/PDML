@@ -18,6 +18,7 @@ public sealed class Binder
     private readonly Dictionary<BoundModule, List<BoundNode>> _importedTypes;
     private readonly List<BoundAliasTypeDefinition> _aliases;
     private readonly Dictionary<BoundTypeDefinition, Dictionary<string, BoundTypeDefinitionProperty>> _types;
+    private readonly List<BoundEnumDefinition> _enums;
     private readonly Dictionary<string, Location> _seenNames;
 
     private Binder(string projectRoot, DiagnosticBag diagnostics, Module module, BoundModule[] dependencies)
@@ -29,12 +30,14 @@ public sealed class Binder
         _importedTypes = new Dictionary<BoundModule, List<BoundNode>>();
         _aliases = new List<BoundAliasTypeDefinition>();
         _types = new Dictionary<BoundTypeDefinition, Dictionary<string, BoundTypeDefinitionProperty>>();
+        _enums = new List<BoundEnumDefinition>();
         _seenNames = new Dictionary<string, Location>();
     }
 
     private BoundModule BindModule()
     {
         BindImports();
+        BindEnums();
         BindTypeDefinitionHeaders();
         BindTypeAliases();
         BindTypeDefinitionInheritances();
@@ -51,7 +54,8 @@ public sealed class Binder
                 pair => (IReadOnlyList<BoundTypeDefinition>)pair.Value
             ),
             _types.Keys.ToArray(),
-            _aliases
+            _aliases,
+            _enums
         );
     }
 
@@ -87,7 +91,7 @@ public sealed class Binder
         foreach (Token symbol in import.Symbols)
         {
             string symbolName = symbol.Value;
-            if (!module.TryGetSymbol(symbolName, out BoundTypeDefinition? type, out BoundAliasTypeDefinition? alias))
+            if (!module.TryGetSymbol(symbolName, out BoundTypeDefinition? type, out BoundAliasTypeDefinition? alias, out BoundEnumDefinition? @enum))
             {
                 _diagnostics.Report(BindingError.UnknownImport, symbol.Location, symbolName, relativePath);
                 continue;
@@ -97,10 +101,16 @@ public sealed class Binder
             if (type is not null)
             {
                 importedType = type;
-            } else if (alias is not null)
+            }
+            else if (alias is not null)
             {
                 importedType = alias;
-            } else
+            }
+            else if (@enum is not null)
+            {
+                importedType = @enum;
+            }
+            else
             {
                 throw new InvalidOperationException($"'{nameof(BoundModule.TryGetSymbol)}' cannot return true and has all symbols set to null");
             }
@@ -120,6 +130,71 @@ public sealed class Binder
 
             _importedTypes[module] = [importedType];
         }
+    }
+
+    private void BindEnums()
+    {
+        if (_diagnostics.HasErrors)
+        {
+            return;
+        }
+
+        foreach (EnumDefinitionMember definition in _module.EnumDefinitions)
+        {
+            BindEnumDefinition(definition);
+        }
+    }
+
+    private void BindEnumDefinition(EnumDefinitionMember definition)
+    {
+        string name = definition.Name.Value;
+        if (_seenNames.TryGetValue(name, out Location? previousDeclaration))
+        {
+            _diagnostics.Report(BindingError.DuplicateName, definition.Name.Location, previousDeclaration, name);
+            return;
+        }
+
+        _seenNames.Add(name, definition.Name.Location);
+
+        Dictionary<string, BoundEnumProperty> properties = new Dictionary<string, BoundEnumProperty>();
+        int currentValue = -1;
+        foreach (EnumDefinitionItem item in definition.Items)
+        {
+            string itemName = item.Name.Value;
+
+            if (item.Value is not null)
+            {
+                if (!int.TryParse(item.Value.Value, out int value))
+                {
+                    _diagnostics.Report(BindingError.InvalidEnumLiteral, item.Value.Location, item.Value.Value);
+                    continue;
+                }
+
+                currentValue = value;
+            }
+            else
+            {
+                if (currentValue == int.MinValue)
+                {
+                    _diagnostics.Report(BindingError.EnumValueOutOfBounds, item.Name.Location);
+                    continue;
+                }
+
+                currentValue++;
+            }
+
+            BoundEnumProperty property = new BoundEnumProperty(item.Name.Location, currentValue);
+
+            if (properties.TryGetValue(itemName, out BoundEnumProperty? existingProperty))
+            {
+                _diagnostics.Report(BindingError.DuplicateProperty, item.Name.Location, existingProperty.Location, itemName);
+                continue;
+            }
+
+            properties.Add(itemName, property);
+        }
+
+        _enums.Add(new BoundEnumDefinition(definition.Name.Location, name, properties));
     }
 
     private void BindTypeDefinitionHeaders()
@@ -439,7 +514,8 @@ public sealed class Binder
             }
 
             return new ArrayTypeRef(generics[0]);
-        } 
+        }
+
         if (name == "Record")
         {
             if (generics.Count != 2)
@@ -489,9 +565,15 @@ public sealed class Binder
         BoundAliasTypeDefinition? aliasDefinition = _aliases.FirstOrDefault(t => t.Name == name);
         if (aliasDefinition is not null)
         {
-            return new AliasDefintionTypeRef(aliasDefinition);
+            return new AliasDefinitionTypeRef(aliasDefinition);
         }
-        
+
+        BoundEnumDefinition? enumDefinition = _enums.FirstOrDefault(t => t.Name == name);
+        if (enumDefinition is not null)
+        {
+            return new EnumDefinitionTypeRef(enumDefinition);
+        }
+
         BoundTypeDefinition? definition = _types.Keys
             .Concat(
                 _importedTypes.Values

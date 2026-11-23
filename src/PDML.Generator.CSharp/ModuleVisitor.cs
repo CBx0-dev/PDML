@@ -146,7 +146,7 @@ public sealed class ModuleVisitor : ModuleVisitorBase
         _writer.Write(type.Definition.Name);
     }
     
-    protected override void Visit(AliasDefintionTypeRef alias)
+    protected override void Visit(AliasDefinitionTypeRef alias)
     {
         // We just emit the aliasing type,
         // because C# has no real alias system

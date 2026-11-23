@@ -2,18 +2,18 @@ using PDML.Compiler.Binding.Nodes.Members;
 
 namespace PDML.Compiler.Binding.Types;
 
-public sealed class AliasDefintionTypeRef : TypeRef
+public sealed class EnumDefinitionTypeRef : TypeRef
 {
-    public BoundAliasTypeDefinition Definition { get; }
+    public BoundEnumDefinition Definition { get; }
 
-    public AliasDefintionTypeRef(BoundAliasTypeDefinition definition)
+    public EnumDefinitionTypeRef(BoundEnumDefinition definition)
     {
         Definition = definition;
     }
 
     public override bool Equals(object? obj)
     {
-        if (obj is not AliasDefintionTypeRef other)
+        if (obj is not EnumDefinitionTypeRef other)
         {
             return false;
         }

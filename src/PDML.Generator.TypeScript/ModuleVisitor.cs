@@ -27,7 +27,7 @@ public sealed class ModuleVisitor : ModuleVisitorBase
     {
         foreach ((BoundModule source, IReadOnlyList<BoundTypeDefinition> symbols) in module.Imports)
         {
-            _writer.Write("import { ");
+            _writer.Write("import type { ");
             bool first = true;
             foreach (BoundTypeDefinition symbol in symbols)
             {

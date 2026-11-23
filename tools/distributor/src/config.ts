@@ -10,6 +10,12 @@ export interface Generator {
     description: string;
 }
 
+export interface Package {
+    name: string;
+    dir: string;
+    description?: string;
+}
+
 export const ORG: string = "@pdml";
 
 export const CLI_PACKAGE: string = `${ORG}/cli`;
@@ -60,4 +66,12 @@ export const GENERATORS: Record<string, Generator> = {
         dll: "PDML.Generator.TypeScript.dll",
         description: "TypeScript code generator for the PDML language."
     },
+};
+
+export const PACKAGES: Record<string, Package> = {
+    tsplugin: {
+        name: `${ORG}/tsplugin`,
+        dir: "src/PDML.Plugin.TSPlugin",
+        description: "TSServer plugin for the PDML Language"
+    }
 };

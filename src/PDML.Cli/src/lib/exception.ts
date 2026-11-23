@@ -6,11 +6,12 @@ export interface IPCException {
 
 export function isIPCException(value: any): value is IPCException {
     return (
+        value != null &&
         typeof value == "object" &&
         typeof value.name == "string" &&
         typeof value.message == "string" &&
         (
-            typeof value.innerException == null ||
+            value.innerException == null ||
             isIPCException(value.innerException)
         )
     );

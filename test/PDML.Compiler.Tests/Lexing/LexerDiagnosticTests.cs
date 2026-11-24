@@ -21,7 +21,6 @@ public sealed class LexerDiagnosticTests
     [InlineData("!")]
     [InlineData("?")]
     [InlineData("+")]
-    [InlineData("1")]
     [InlineData("@")]
     public void NextToken_WithUnexpectedCharacter_ReturnsErrorTokenAndReportsDiagnostic(string unexpected)
     {

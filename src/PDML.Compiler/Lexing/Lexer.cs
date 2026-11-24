@@ -69,7 +69,7 @@ public sealed class Lexer
             return NextIdentifier(start);
         }
 
-        if (char.IsDigit(_current))
+        if (char.IsDigit(_current) || (_current == '+' || _current == '-') && char.IsDigit(_next))
         {
             return NextInt(start);
         }
@@ -160,6 +160,8 @@ public sealed class Lexer
 
     private Token NextInt(Coordinate start)
     {
+        Skip();
+        
         while (char.IsDigit(_current) && !_isEof)
         {
             Skip();

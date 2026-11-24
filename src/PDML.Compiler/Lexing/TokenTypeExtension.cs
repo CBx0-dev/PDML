@@ -18,6 +18,8 @@ public static class TokenTypeExtension
                 return "<COMMENT>";
             case TokenType.String:
                 return "<STRING>";
+            case TokenType.Int:
+                return "<INT>";
             case TokenType.TypeKeyword:
                 return "type";
             case TokenType.VirtualKeyword:

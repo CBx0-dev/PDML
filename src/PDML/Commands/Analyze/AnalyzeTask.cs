@@ -1,4 +1,3 @@
-using GlobExpressions;
 using PDML.Compiler;
 using PDML.Compiler.Common;
 using PDML.Compiler.Diagnostics;

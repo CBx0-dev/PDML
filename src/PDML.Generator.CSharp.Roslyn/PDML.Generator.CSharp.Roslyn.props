@@ -2,6 +2,8 @@
 
 	<ItemGroup>
 		<CompilerVisibleProperty Include="PDMLNamespace" />
+		<CompilerVisibleProperty Include="PDMLRoot" />
+		<CompilerVisibleProperty Include="MSBuildProjectDirectory" />
 		<AdditionalFiles Include="**/*.pdml" />
 	</ItemGroup>
 

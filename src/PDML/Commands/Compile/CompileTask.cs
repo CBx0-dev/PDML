@@ -1,3 +1,4 @@
+using System.Dynamic;
 using GlobExpressions;
 using PDML.Common;
 using PDML.Compiler;
@@ -14,9 +15,12 @@ internal class CompileTask : ITask<CompileResult, CompileSettings>
     {
         CodeGenerator generator = InitGenerator(settings.Generator, settings.Properties, settings.DllFolders);
 
-        SourceFile[] sourceFiles = ReadFiles(settings.Paths, settings.UseStdin);
+        SourceFile[] sourceFiles = ReadFiles(settings.RootPath, settings.UseStdin);
         Compilation compilation = CompilerService.CompileEntryPoints(
             new DefaultDiagnosticService(),
+            settings.UseStdin
+                ? Directory.GetCurrentDirectory()
+                : settings.RootPath!,
             sourceFiles
         );
 
@@ -75,13 +79,13 @@ internal class CompileTask : ITask<CompileResult, CompileSettings>
         return builder.CreateInstance(settings);
     }
 
-    private SourceFile[] ReadFiles(string[]? paths, bool useStdin)
+    private SourceFile[] ReadFiles(string? rootPath, bool useStdin)
     {
         if (useStdin)
         {
-            if (paths is not null)
+            if (rootPath is not null)
             {
-                throw new ArgumentException("Standard input ('-') cannot be combined with other input files.");
+                throw new ArgumentException("Standard input cannot be combined with other input files.");
             }
 
             string input = Console.In.ReadToEnd();
@@ -96,44 +100,15 @@ internal class CompileTask : ITask<CompileResult, CompileSettings>
             ];
         }
 
-        if (paths is null)
+        if (rootPath is null)
         {
             throw new ArgumentException("At least one source path is required");
         }
 
         List<SourceFile> sourceFiles = new List<SourceFile>();
-
-        foreach (string path in paths)
+        foreach (string file in Directory.EnumerateFiles(rootPath, "*.pdml", SearchOption.AllDirectories))
         {
-            IEnumerable<string> matches;
-
-            if (File.Exists(path))
-            {
-                matches = [path];
-            }
-            else if (Directory.Exists(path))
-            {
-                matches = Directory.GetFiles(path);
-            }
-            else if (path.IndexOfAny(['*', '?', '[', '{']) >= 0)
-            {
-                matches = Glob.Files(
-                    Directory.GetCurrentDirectory(),
-                    path.Replace('\\', '/')
-                );
-            }
-            else
-            {
-                continue;
-            }
-
-            foreach (string file in matches)
-            {
-                if (Path.GetExtension(file) == ".pdml")
-                {
-                    sourceFiles.Add(SourceFile.Read(file));
-                }
-            }
+            sourceFiles.Add(SourceFile.Read(file));
         }
 
         return sourceFiles.ToArray();

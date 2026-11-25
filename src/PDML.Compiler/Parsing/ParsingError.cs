@@ -31,10 +31,20 @@ public static class ParsingError
         ArgumentCount = 2
     };
 
+    public static readonly DiagnosticDescriptor ModuleOutOfRoot = new DiagnosticDescriptor
+    {
+        Code = (int)Code.ModuleOutOfRoot,
+        Step = CompilationStep.Parsing,
+        Severity = DiagnosticSeverity.Error,
+        MessageFormat = "File '{0}' is not included in your project, because it is not under your project root '{1}'",
+        ArgumentCount = 2
+    };
+    
     public enum Code
     {
         ExpectedToken = 2000,
         UnexpectedToken,
-        FileNotFound
+        FileNotFound,
+        ModuleOutOfRoot
     }
 }

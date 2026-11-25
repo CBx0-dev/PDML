@@ -1,3 +1,4 @@
+using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using OmniSharp.Extensions.LanguageServer.Protocol.Window;
 using PDML.Compiler;
@@ -12,6 +13,7 @@ namespace PDML.Plugin.LSP.Services;
 public sealed class CompilationService
 {
     private readonly IWindowLanguageServer _logger;
+    private readonly ILanguageServerFacade _server;
     private readonly DocumentStoreService _documentStoreService;
     private readonly LspDiagnosticService _diagnosticService;
 
@@ -40,10 +42,12 @@ public sealed class CompilationService
 
     public CompilationService(
         IWindowLanguageServer logger,
+        ILanguageServerFacade server,
         DocumentStoreService documentStoreService
     )
     {
         _logger = logger;
+        _server = server;
         _documentStoreService = documentStoreService;
         _diagnosticService = new LspDiagnosticService();
 
@@ -65,7 +69,20 @@ public sealed class CompilationService
             return;
         }
 
-        compilation = CompilerService.CompileEntryPoints(_diagnosticService, sourceFiles);
+        string? projectRoot = FindProjectRoot();
+        if (projectRoot is null)
+        {
+            _logger.LogError("Project root not found");
+            compilation = Compilation.Empty(_diagnosticService.CreateDiagnosticBag());
+            Volatile.Write(ref _current, compilation);
+            return;
+        }
+
+        compilation = CompilerService.CompileEntryPoints(
+            _diagnosticService,
+            projectRoot,
+            sourceFiles
+        );
         Volatile.Write(ref _current, compilation);
         _logger.LogInfo("Compilation completed");
     }
@@ -75,4 +92,21 @@ public sealed class CompilationService
 
     internal Module? ParseModule(SourceFile sourceFile, out DiagnosticBag diagnostics)
         => CompilerService.ParseModule(_diagnosticService, sourceFile, out diagnostics);
+
+    internal string? FindProjectRoot()
+    {
+        Container<WorkspaceFolder>? folders = _server.ClientSettings.WorkspaceFolders;
+        if (folders is null)
+        {
+            return _server.ClientSettings.RootUri?.GetFileSystemPath() ?? _server.ClientSettings.RootPath;
+        }
+
+        WorkspaceFolder? workspaceFolder = folders.FirstOrDefault();
+        if (workspaceFolder is null)
+        {
+            return _server.ClientSettings.RootUri?.GetFileSystemPath() ?? _server.ClientSettings.RootPath;
+        }
+
+        return workspaceFolder.Uri.GetFileSystemPath();
+    }
 }

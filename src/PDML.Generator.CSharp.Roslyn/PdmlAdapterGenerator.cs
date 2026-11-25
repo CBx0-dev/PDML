@@ -16,13 +16,34 @@ public sealed class PdmlAdapterGenerator : IIncrementalGenerator
         IncrementalValueProvider<string> targetNamespace = context.AnalyzerConfigOptionsProvider
             .Select(static (provider, _) =>
             {
-                provider.GlobalOptions.TryGetValue("build_property.PDMLNamespace", out string? ns);
-                if (string.IsNullOrWhiteSpace(ns))
+                if (
+                    !provider.GlobalOptions.TryGetValue("build_property.PDMLNamespace", out string? ns) ||
+                    string.IsNullOrWhiteSpace(ns)
+                )
                 {
                     throw new InvalidOperationException("PDMLNamespace is not set or is empty. Add one in your PropertyGroup");
                 }
 
                 return ns;
+            });
+
+        IncrementalValueProvider<string> projectRoot = context.AnalyzerConfigOptionsProvider
+            .Select(static (provider, _) =>
+            {
+                if (provider.GlobalOptions.TryGetValue("build_property.MSBuildProjectDirectory", out string? projectRoot))
+                {
+                    return projectRoot;
+                }
+
+                if (
+                    !provider.GlobalOptions.TryGetValue("build_property.PDMLRoot", out projectRoot) ||
+                    string.IsNullOrWhiteSpace(projectRoot)
+                )
+                {
+                    throw new InvalidOperationException("A project root is required. MSBuildProjectDirectory and PDMLRoot returned null or whitespace");
+                }
+
+                return projectRoot;
             });
 
         IncrementalValueProvider<ProjectInfo> project = context.AdditionalTextsProvider
@@ -33,12 +54,13 @@ public sealed class PdmlAdapterGenerator : IIncrementalGenerator
                 Content = file.GetText(cancellationToken)?.ToString()
             })
             .Collect()
-            .Combine(targetNamespace)
-            .Select(static (pair, _) => new ProjectInfo
-            {
-                RootNamespace = pair.Right,
-                Files = pair.Left
-            });
+            .CombinedSelect(targetNamespace, projectRoot, (files, rootNamespace, projectRoot, _) =>
+                new ProjectInfo
+                {
+                    RootNamespace = rootNamespace,
+                    ProjectRoot = projectRoot,
+                    Files = files
+                });
 
         context.RegisterSourceOutput(
             project,
@@ -55,6 +77,7 @@ public sealed class PdmlAdapterGenerator : IIncrementalGenerator
 
                 PdmlCompilation compilation = CompilerService.CompileEntryPoints(
                     new RoslynDiagnosticService(),
+                    project.ProjectRoot,
                     validFiles.Select(file => SourceFile.Create(file.Path, file.Content!))
                 );
 

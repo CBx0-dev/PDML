@@ -33,7 +33,7 @@ export interface AnalyzeResult {
 }
 
 interface AnalyzeDiskOptions {
-    files: string[];
+    projectRoot: string;
 }
 
 interface AnalyzeVirtualOptions {
@@ -75,8 +75,8 @@ export class Compiler {
     public analyze(options: AnalyzeOptions): AnalyzeResult | IPCException {
         const args: string[] = ["analyze", "-f", "json"];
 
-        if ("files" in options) {
-            args.push(...options.files);
+        if ("projectRoot" in options) {
+            args.push(options.projectRoot);
             return this.exec(args);
         }
 

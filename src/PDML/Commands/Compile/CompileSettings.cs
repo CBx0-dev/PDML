@@ -5,13 +5,13 @@ namespace PDML.Commands.Compile;
 
 internal sealed class CompileSettings : BaseCommandSettings
 {
+    [CommandArgument(0, "[<path>]")]
+    [Description("The path to the project root. All *.pdml files are recusivly collected")]
+    public string? RootPath { get; init; }
+    
     [CommandOption("--dll-path")]
     [Description("Add a folder path to lookup generator DLLs")]
     public string[]? DllFolders { get; init; }
-
-    [CommandArgument(0, "[<path>]")]
-    [Description("The path to *.pdml a file or a glob pattern that resolves to multiple files")]
-    public required string[]? Paths { get; init; }
 
     [CommandOption("--stdin")]
     [Description("Reads the <stdin> as input and tries to parse it")]

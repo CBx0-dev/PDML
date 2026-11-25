@@ -20,16 +20,24 @@ public class CompilerService
         _modules = new Dictionary<string, ModuleInformation?>();
     }
 
-    public Compilation Compile(IReadOnlyList<SourceFile> sourceFiles)
+    public Compilation Compile(string projectRoot, IReadOnlyList<SourceFile> sourceFiles)
     {
+        projectRoot = Path.GetFullPath(projectRoot);
 
         DiagnosticBag globalDiagnostics = _diagnosticService.CreateDiagnosticBag();
         CollectModules(globalDiagnostics, sourceFiles);
-
-        string? projectRoot = GetProjectRoot();
-        if (projectRoot is null)
+        foreach (ModuleInformation? information in _modules.Values)
         {
-            throw new InvalidOperationException("Could not extract project root out of source files");
+            if (information is null)
+            {
+                continue;
+            }
+
+            string modulePath = Path.GetFullPath(information.Module.Location.SourceFile.FilePath);
+            if (modulePath.StartsWith(projectRoot))
+            {
+                globalDiagnostics.Report(ParsingError.ModuleOutOfRoot, information.Module.Location, modulePath, projectRoot);
+            }
         }
 
         IReadOnlyList<BoundModule>? modules = BindModules(globalDiagnostics, projectRoot);
@@ -151,36 +159,6 @@ public class CompilerService
         }
     }
 
-    private string? GetProjectRoot()
-    {
-        string[] paths = _modules.Keys.ToArray();
-
-        if (paths.Length == 0)
-        {
-            return null;
-        }
-
-        string? common = Path.GetDirectoryName(paths[0]);
-        if (common is null)
-        {
-            return null;
-        }
-
-        foreach (string path in paths.Skip(1))
-        {
-            while (!path.StartsWith(common))
-            {
-                common = Path.GetDirectoryName(common);
-                if (common is null)
-                {
-                    return null;
-                }
-            }
-        }
-
-        return common;
-    }
-
     private IReadOnlyList<BoundModule>? BindModules(DiagnosticBag diagnostics, string projectRoot)
     {
         if (diagnostics.HasErrors)
@@ -212,7 +190,7 @@ public class CompilerService
         return modules.Values.ToList();
     }
 
-    public static Compilation CompileEntryPoints(IDiagnosticService diagnosticService, IEnumerable<SourceFile> entryPoints)
+    public static Compilation CompileEntryPoints(IDiagnosticService diagnosticService, string projectRoot, IEnumerable<SourceFile> entryPoints)
     {
         List<SourceFile> sourceFiles = entryPoints.ToList();
         if (sourceFiles.Count == 0)
@@ -221,7 +199,7 @@ public class CompilerService
         }
 
         CompilerService compiler = new CompilerService(diagnosticService);
-        return compiler.Compile(sourceFiles);
+        return compiler.Compile(projectRoot, sourceFiles);
     }
 
     public static IReadOnlyList<Token> Tokenize(IDiagnosticService diagnosticService, SourceFile sourceFile, out DiagnosticBag diagnostics)

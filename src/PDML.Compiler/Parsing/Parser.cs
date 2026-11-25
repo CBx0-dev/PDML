@@ -77,7 +77,8 @@ public sealed class Parser
                 return ParseVirtualDefinitionMember();
             case TokenType.AliasKeyword:
                 return ParseAliasDefinitionMember();
-
+            case TokenType.EnumKeyword:
+                return ParseEnumDefinitionMember();
         }
 
         _diagnostics.Report(ParsingError.UnexpectedToken, _current.Location, _current.Type.GetDisplayString());
@@ -250,11 +251,63 @@ public sealed class Parser
         return new AliasDefinitionMember
         {
             Location = Location.Merge(aliasingType.Location, semicolon.Location),
-            AliasKeyword= aliasKeyword,
+            AliasKeyword = aliasKeyword,
             Name = name,
             Equal = equal,
             AliasingType = aliasingType,
             Semicolon = semicolon
+        };
+    }
+
+    private Member ParseEnumDefinitionMember()
+    {
+        Token enumKeyword = Match(TokenType.EnumKeyword);
+        Token name = Match(TokenType.Identifier);
+        Token lBrace = Match(TokenType.LBrace);
+        DelimitedList<EnumDefinitionItem, Token> items = new DelimitedList<EnumDefinitionItem, Token>();
+        items.AddItem(ParseEnumDefinitionItem());
+
+        while (_current.Type is not TokenType.RBrace && !_isEof)
+        {
+            items.AddDelimiter(Match(TokenType.Comma));
+            items.AddItem(ParseEnumDefinitionItem());
+        }
+
+        Token rBrace = Match(TokenType.RBrace);
+        Token semicolon = Match(TokenType.Semicolon);
+
+        return new EnumDefinitionMember
+        {
+            Location = Location.Merge(enumKeyword.Location, semicolon.Location),
+            EnumKeyword = enumKeyword,
+            Name = name,
+            LBrace = lBrace,
+            Items = items,
+            RBrace = rBrace,
+            Semicolon = semicolon
+        };
+    }
+
+    private EnumDefinitionItem ParseEnumDefinitionItem()
+    {
+        Token name = Match(TokenType.Identifier);
+        Token? equal = null;
+        Token? value = null;
+
+        if (_current.Type == TokenType.Equals)
+        {
+            equal = Match(TokenType.Equals);
+            value = Match(TokenType.Int);
+        }
+
+        return new EnumDefinitionItem
+        {
+            Location = value is not null
+                ? Location.Merge(name.Location, value.Location)
+                : name.Location,
+            Name = name,
+            Equal = equal,
+            Value = value
         };
     }
 

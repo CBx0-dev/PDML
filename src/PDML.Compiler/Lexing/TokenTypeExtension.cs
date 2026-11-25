@@ -18,6 +18,8 @@ public static class TokenTypeExtension
                 return "<COMMENT>";
             case TokenType.String:
                 return "<STRING>";
+            case TokenType.Int:
+                return "<INT>";
             case TokenType.TypeKeyword:
                 return "type";
             case TokenType.VirtualKeyword:
@@ -28,6 +30,8 @@ public static class TokenTypeExtension
                 return "import";
             case TokenType.FromKeyword:
                 return "from";
+            case TokenType.EnumKeyword:
+                return "enum";
             case TokenType.Ampersand:
                 return "&";
             case TokenType.Colon:

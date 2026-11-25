@@ -69,6 +69,11 @@ public sealed class Lexer
             return NextIdentifier(start);
         }
 
+        if (char.IsDigit(_current) || (_current == '+' || _current == '-') && char.IsDigit(_next))
+        {
+            return NextInt(start);
+        }
+
         if (_current == '"')
         {
             return NextString(start);
@@ -146,10 +151,23 @@ public sealed class Lexer
             "alias" => TokenType.AliasKeyword,
             "import" => TokenType.ImportKeyword,
             "from" => TokenType.FromKeyword,
+            "enum" => TokenType.EnumKeyword,
             _ => TokenType.Identifier,
         };
 
         return CreateToken(location, type, content);
+    }
+
+    private Token NextInt(Coordinate start)
+    {
+        Skip();
+        
+        while (char.IsDigit(_current) && !_isEof)
+        {
+            Skip();
+        }
+
+        return CreateToken(start, TokenType.Int);
     }
     
     private Token NextString(Coordinate start)

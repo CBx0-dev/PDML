@@ -103,6 +103,24 @@ public static class BindingError
         ArgumentCount = 3
     };
 
+    public static readonly DiagnosticDescriptor InvalidEnumLiteral = new DiagnosticDescriptor
+    {
+        Code = (int)Code.InvalidEnumLiteral,
+        Step = CompilationStep.Binding,
+        Severity = DiagnosticSeverity.Error,
+        MessageFormat = $"Invalid enum literal '{{0}}' exceeds the valid bounds from '{int.MinValue}' to  '{int.MaxValue}'",
+        ArgumentCount = 1
+    };
+
+    public static readonly DiagnosticDescriptor EnumValueOutOfBounds = new DiagnosticDescriptor
+    {
+        Code = (int)Code.EnumValueOutOfBounds,
+        Step = CompilationStep.Binding,
+        Severity = DiagnosticSeverity.Error,
+        MessageFormat = $"Enum item would count over '{int.MaxValue}'",
+        ArgumentCount = 0
+    };
+    
     public enum Code
     {
         DuplicateName = 3000,
@@ -115,6 +133,8 @@ public static class BindingError
         DuplicatePropertyComposition,
         UnknownImport,
         DoubleImport,
-        WrongGenericCount
+        WrongGenericCount,
+        InvalidEnumLiteral,
+        EnumValueOutOfBounds
     }
 }

@@ -34,6 +34,11 @@ public sealed class SemanticTokenGenerator
             VisitAliasDefinitionMember(definition);
         }
 
+        foreach (EnumDefinitionMember definition in module.EnumDefinitions)
+        {
+            VisitEnumDefinitionMember(definition);
+        }
+
         return _tokens
             .OrderBy(token => token.Location.Start.Position)
             .ToList();
@@ -99,21 +104,6 @@ public sealed class SemanticTokenGenerator
         VisitTypeDefinitionItems(definition.Items);
     }
 
-    private void VisitAliasDefinitionMember(AliasDefinitionMember definition)
-    {
-        _tokens.Add(new SemanticToken(
-            definition.AliasKeyword.Location,
-            SemanticTokenType.Keyword
-        ));
-        _tokens.Add(new SemanticToken(
-            definition.Name.Location,
-            SemanticTokenType.Type,
-            SemanticTokenModifier.Declaration
-        ));
-
-        VisitTypeSignature(definition.AliasingType);
-    }
-
     private void VisitTypeDefinitionItems(DelimitedList<TypeDefinitionItem, Token> items)
     {
         foreach ((TypeDefinitionItem? item, Token? delimiter) in items.Entries)
@@ -165,6 +155,73 @@ public sealed class SemanticTokenGenerator
     private void VisitTypeDefinitionItemTarget(TypeDefinitionItemTarget definition)
     {
         VisitTypeSignature(definition.Type);
+    }
+
+    private void VisitAliasDefinitionMember(AliasDefinitionMember definition)
+    {
+        _tokens.Add(new SemanticToken(
+            definition.AliasKeyword.Location,
+            SemanticTokenType.Keyword
+        ));
+        _tokens.Add(new SemanticToken(
+            definition.Name.Location,
+            SemanticTokenType.Type,
+            SemanticTokenModifier.Declaration
+        ));
+
+        VisitTypeSignature(definition.AliasingType);
+    }
+
+    private void VisitEnumDefinitionMember(EnumDefinitionMember definition)
+    {
+        _tokens.Add(new SemanticToken(
+            definition.EnumKeyword.Location,
+            SemanticTokenType.Keyword
+        ));
+        _tokens.Add(new SemanticToken(
+            definition.Name.Location,
+            SemanticTokenType.Type,
+            SemanticTokenModifier.Declaration
+        ));
+
+        foreach ((EnumDefinitionItem? item, Token? delimiter) in definition.Items.Entries)
+        {
+            if (delimiter is not null)
+            {
+                _tokens.Add(new SemanticToken(
+                    delimiter.Location,
+                    SemanticTokenType.Operator
+                ));
+                continue;
+            }
+
+            if (item is null)
+            {
+                continue;
+            }
+
+            _tokens.Add(new SemanticToken(
+                item.Name.Location,
+                SemanticTokenType.Property,
+                SemanticTokenModifier.Declaration
+            ));
+
+            if (item.Equal is not null)
+            {
+                _tokens.Add(new SemanticToken(
+                    item.Equal.Location,
+                    SemanticTokenType.Operator
+                ));
+            }
+
+            if (item.Value is not null)
+            {
+                _tokens.Add(new SemanticToken(
+                    item.Value.Location,
+                    SemanticTokenType.Number
+                ));
+            }
+        }
     }
 
     private void VisitTypeSignature(TypeSignature signature)

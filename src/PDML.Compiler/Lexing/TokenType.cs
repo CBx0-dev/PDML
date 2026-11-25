@@ -8,13 +8,15 @@ public enum TokenType
     Identifier,
     Comment,
     String,
+    Int,
 
     TypeKeyword,
     VirtualKeyword,
     AliasKeyword,
     ImportKeyword,
     FromKeyword,
-
+    EnumKeyword,
+    
     Ampersand,
     Colon,
     Semicolon,

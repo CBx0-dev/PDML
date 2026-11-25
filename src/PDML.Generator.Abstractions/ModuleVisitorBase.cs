@@ -12,6 +12,8 @@ public abstract class ModuleVisitorBase
 
     protected abstract void Visit(BoundAliasTypeDefinition alias);
 
+    protected abstract void Visit(BoundEnumDefinition @enum);
+
     protected void Visit(TypeRef type)
     {
         switch (type)
@@ -24,11 +26,15 @@ public abstract class ModuleVisitorBase
                 Visit(typeDefinitionTypeRef);
                 break;
 
-            case AliasDefintionTypeRef aliasDefintionTypeRef:
-                Visit(aliasDefintionTypeRef);
+            case AliasDefinitionTypeRef aliasDefinitionTypeRef:
+                Visit(aliasDefinitionTypeRef);
                 break;
             
-            case ArrayTypeRef arrayTypeRef: 
+            case EnumDefinitionTypeRef enumDefinitionTypeRef:
+                Visit(enumDefinitionTypeRef);
+                break;
+                
+            case ArrayTypeRef arrayTypeRef:
                 Visit(arrayTypeRef);
                 break;
 
@@ -45,8 +51,10 @@ public abstract class ModuleVisitorBase
 
     protected abstract void Visit(TypeDefinitionTypeRef type);
 
-    protected abstract void Visit(AliasDefintionTypeRef type);
-  
+    protected abstract void Visit(AliasDefinitionTypeRef type);
+    
+    protected abstract void Visit(EnumDefinitionTypeRef type);
+
     protected abstract void Visit(ArrayTypeRef type);
 
     protected abstract void Visit(RecordTypeRef type);

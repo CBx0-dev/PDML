@@ -50,6 +50,11 @@ public sealed class ModuleVisitor : ModuleVisitorBase
         {
             Visit(alias);
         }
+
+        foreach (BoundEnumDefinition @enum in module.Enums)
+        {
+            Visit(@enum);
+        }
     }
 
     protected override void Visit(BoundTypeDefinition type)
@@ -77,13 +82,33 @@ public sealed class ModuleVisitor : ModuleVisitorBase
         _writer.WriteLine();
     }
 
-    protected override void Visit(BoundAliasTypeDefinition type)
+    protected override void Visit(BoundAliasTypeDefinition alias)
     {
         _writer.Write("export type ");
-        _writer.Write(type.Name.ToPascalCase());
+        _writer.Write(alias.Name.ToPascalCase());
         _writer.Write(" = ");
-        Visit(type.AliasingType);
+        Visit(alias.AliasingType);
         _writer.WriteLine(';');
+        _writer.WriteLine();
+    }
+
+    protected override void Visit(BoundEnumDefinition @enum)
+    {
+        _writer.Write("export enum ");
+        _writer.Write(@enum.Name);
+        _writer.WriteLine(" {");
+
+        foreach ((string name, BoundEnumProperty property) in @enum.Properties)
+        {
+            _writer.Write("    ");
+            _writer.Write(name.ToPascalCase());
+            _writer.Write(" = ");
+            _writer.Write(property.Value);
+            _writer.WriteLine(',');
+        }
+
+        _writer.WriteLine('}');
+        _writer.WriteLine();
     }
 
     protected override void Visit(IntrinsicTypeRef type)
@@ -122,10 +147,15 @@ public sealed class ModuleVisitor : ModuleVisitorBase
     {
         _writer.Write(type.Definition.Name.ToPascalCase());
     }
-    
-    protected override void Visit(AliasDefintionTypeRef alias)
+
+    protected override void Visit(AliasDefinitionTypeRef type)
     {
-        _writer.Write(alias.Definition.Name.ToPascalCase());
+        _writer.Write(type.Definition.Name.ToPascalCase());
+    }
+
+    protected override void Visit(EnumDefinitionTypeRef type)
+    {
+        _writer.Write(type.Definition.Name.ToPascalCase());
     }
 
     protected override void Visit(ArrayTypeRef type)
